@@ -53,10 +53,48 @@ function calculateDistance(pos1, pos2) {
   return R * c; // Distance in km
 }
 
-// Drawer toggle
-document.getElementById('drawer-toggle').addEventListener('click', () => {
-  document.getElementById('drawer').classList.toggle('open');
+const drawer = document.getElementById('drawer');
+const drawerHandle = document.getElementById('drawer-handle');
+
+let isDragging = false;
+let startY = 0;
+let startBottom = 0;
+
+// Åpne/lukke med klikk
+drawerHandle.addEventListener('click', () => {
+  drawer.classList.toggle('open');
 });
+
+// Dra for å åpne/lukke
+drawerHandle.addEventListener('mousedown', (event) => {
+  isDragging = true;
+  startY = event.clientY;
+  startBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
+});
+
+window.addEventListener('mousemove', (event) => {
+  if (isDragging) {
+    const deltaY = startY - event.clientY;
+    const newBottom = Math.max(-300, Math.min(0, startBottom - deltaY));
+    drawer.style.bottom = `${newBottom}px`;
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    // Snap til åpen/lukket
+    const currentBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
+    if (currentBottom > -150) {
+      drawer.classList.add('open');
+      drawer.style.bottom = '0px';
+    } else {
+      drawer.classList.remove('open');
+      drawer.style.bottom = '-300px';
+    }
+  }
+});
+
 
 // Nullstill data
 document.getElementById('reset-data').addEventListener('click', () => {
