@@ -1,41 +1,119 @@
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #f0f8ff;
     margin: 0;
     padding: 0;
-}
-
-.container {
-    margin-top: 50px;
-}
-
-h1 {
-    color: #333;
-}
-
-.speed-display {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #005f73;
-    margin: 20px 0;
-    padding: 20px;
-    border: 2px solid #005f73;
-    border-radius: 10px;
-    display: inline-block;
-    background-color: #e0f7fa;
-}
-
-.start-button {
-    font-size: 1.2rem;
+  }
+  
+  header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #007bff;
+    color: white;
+    padding: 10px;
+  }
+  
+  .dashboard, section {
+    text-align: center;
+    margin: 20px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto;
+    overflow-x: auto; /* Tillat horisontal rulling */
+    display: block; /* Gjør tabellen rullbar på små skjermer */
+  }
+  
+  table th, table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+    font-size: 14px; /* Mindre font for mobil */
+  }
+  
+  table th {
+    background: #f2f2f2;
+  }
+  
+  table input {
+    width: 100%; /* Sørg for at input-elementene ikke strekker tabellen */
+    font-size: 12px; /* Mindre font for input */
+  }
+  
+  button {
+    margin-top: 20px;
     padding: 10px 20px;
-    background-color: #0288d1;
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 5px;
     cursor: pointer;
-}
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Responsiv styling */
+  @media screen and (max-width: 768px) {
+    table th, table td {
+      font-size: 12px;
+      padding: 6px;
+    }
+  
+    button {
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+  }
 
-.start-button:hover {
-    background-color: #0277bd;
-}
+  //nytt
+  .calibration-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .calibration-block {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 5px;
+    background: #f9f9f9;
+  }
+  
+  .calibration-block h3 {
+    margin-top: 0;
+  }
+  
+  .calibration-block label {
+    display: block;
+    font-size: 14px;
+    margin: 5px 0;
+  }
+  
+  .calibration-block input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
