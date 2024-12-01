@@ -29,15 +29,19 @@ function updateDashboard(speed, distance, fuel, rpm) {
 document.getElementById('simulation-toggle').addEventListener('change', (event) => {
     isSimulationMode = event.target.checked;
 
+    // Hent kontroll-div
     const controls = document.getElementById('simulation-controls');
-    controls.style.display = isSimulationMode ? 'block' : 'none';
 
+    // Vis eller skjul kontrollen basert på simuleringsmodus
     if (isSimulationMode) {
+        controls.style.display = 'block';
         startSimulation();
     } else {
+        controls.style.display = 'none';
         stopSimulation();
     }
 });
+
 
 
 
