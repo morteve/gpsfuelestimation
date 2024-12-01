@@ -52,7 +52,6 @@ function calculateDistance(pos1, pos2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c; // Distance in km
 }
-
 const drawer = document.getElementById('drawer');
 const drawerHandle = document.getElementById('drawer-handle');
 
@@ -62,7 +61,10 @@ let startBottom = 0;
 
 // Åpne/lukke med klikk
 drawerHandle.addEventListener('click', () => {
-  drawer.classList.toggle('open');
+  if (!isDragging) {
+    drawer.classList.toggle('open');
+    drawer.style.bottom = drawer.classList.contains('open') ? '0px' : '-300px';
+  }
 });
 
 // Start dra med mus eller touch
@@ -73,7 +75,7 @@ function startDrag(event) {
   isDragging = true;
   startY = event.touches ? event.touches[0].clientY : event.clientY;
   startBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
-  event.preventDefault(); // Hindrer scroll under drag
+  event.preventDefault(); // Hindrer scrolling under drag
 }
 
 // Dra med mus eller touch
