@@ -15,12 +15,15 @@ const calibrationData = {
 };
 
 function updateDashboard(speed, distance, fuel, rpm) {
-  document.getElementById('speed').textContent = speed.toFixed(1);
-  document.getElementById('distance').textContent = distance.toFixed(2);
-  document.getElementById('fuel-consumption').textContent = fuel.toFixed(2);
-  document.getElementById('interpolated-rpm').textContent = rpm.toFixed(2);
-  document.getElementById('fuel-per-nm').textContent = (fuel / (distance / 1.852)).toFixed(2);
+    document.getElementById('speed').textContent = speed.toFixed(1);
+    document.getElementById('distance').textContent = distance.toFixed(2);
+    document.getElementById('fuel-consumption').textContent = fuel.toFixed(2);
+    document.getElementById('interpolated-rpm').textContent = rpm.toFixed(2);
+    document.getElementById('fuel-per-nm').textContent = distance > 0
+        ? (fuel / (distance / 1.852)).toFixed(2)
+        : '0';
 }
+
 
 //toggle simulering
 document.getElementById('simulation-toggle').addEventListener('change', (event) => {
@@ -38,7 +41,17 @@ document.getElementById('simulation-toggle').addEventListener('change', (event) 
 document.getElementById('simulated-speed').addEventListener('input', (event) => {
     simulatedSpeed = parseFloat(event.target.value);
     document.getElementById('simulated-speed-value').textContent = simulatedSpeed.toFixed(1);
+
+    // Oppdater distanse og drivstoff umiddelbart
+    if (isSimulationMode) {
+        const distanceStep = (simulatedSpeed * 1.852) / 3600; // Beregn ny distanse umiddelbart
+        distanceTraveled += distanceStep;
+
+        const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
+        updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+    }
 });
+
 
 document.getElementById('reset-data').addEventListener('click', () => {
     distanceTraveled = 0;
@@ -54,13 +67,19 @@ function startSimulation() {
     stopSimulation(); // Stopp eventuell eksisterende simulering
     simulationInterval = setInterval(() => {
         if (isSimulationMode) {
+            // Beregn distanse basert på simulert hastighet
             const distanceStep = (simulatedSpeed * 1.852) / 3600; // km per sekund
             distanceTraveled += distanceStep;
 
+            // Beregn interpolerte verdier
             const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
+
+            // Oppdater dashboard med de nye verdiene
             updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
         }
     }, SIMULATION_UPDATE_INTERVAL);
+}
+
 }
 
 function stopSimulation() {
@@ -168,6 +187,7 @@ document.getElementById('reset-data').addEventListener('click', () => {
     distanceTraveled = 0;
     updateDashboard(0, 0, 0, 0);
 });
+
 
 
 
