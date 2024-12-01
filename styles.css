@@ -19,15 +19,27 @@ body {
   }
   
   table {
-    margin: 0 auto;
+    width: 100%;
     border-collapse: collapse;
-    width: 80%;
+    margin: 0 auto;
+    overflow-x: auto; /* Tillat horisontal rulling */
+    display: block; /* Gjør tabellen rullbar på små skjermer */
   }
   
   table th, table td {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: center;
+    font-size: 14px; /* Mindre font for mobil */
+  }
+  
+  table th {
+    background: #f2f2f2;
+  }
+  
+  table input {
+    width: 100%; /* Sørg for at input-elementene ikke strekker tabellen */
+    font-size: 12px; /* Mindre font for input */
   }
   
   button {
@@ -43,5 +55,18 @@ body {
   
   button:hover {
     background-color: #0056b3;
+  }
+  
+  /* Responsiv styling */
+  @media screen and (max-width: 768px) {
+    table th, table td {
+      font-size: 12px;
+      padding: 6px;
+    }
+  
+    button {
+      font-size: 14px;
+      padding: 8px 16px;
+    }
   }
   
