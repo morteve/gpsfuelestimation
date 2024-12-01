@@ -120,8 +120,11 @@ body {
   #simulation-controls {
     margin-top: 10px;
     text-align: center;
-    display: none; /* Skjult som standard, men vist ved behov */
+    display: none; /* Skjult som standard */
+    flex-direction: column; /* Sørg for vertikal justering */
+    gap: 10px; /* Litt avstand mellom elementene */
 }
+
 
 #simulated-speed {
     width: 80%;

@@ -34,13 +34,14 @@ document.getElementById('simulation-toggle').addEventListener('change', (event) 
 
     // Vis eller skjul kontrollen basert på simuleringsmodus
     if (isSimulationMode) {
-        controls.style.display = 'block';
+        controls.style.display = 'flex'; // Bruk "flex" for bedre layout
         startSimulation();
     } else {
         controls.style.display = 'none';
         stopSimulation();
     }
 });
+
 
 
 
@@ -87,7 +88,6 @@ function startSimulation() {
     }, SIMULATION_UPDATE_INTERVAL);
 }
 
-}
 
 function stopSimulation() {
     if (simulationInterval) {
