@@ -5,10 +5,10 @@ let lastPosition = null;
 
 // Kalibreringsdata
 const calibrationData = {
-  idle: { rpm: 0, speed: 0, fuel: 0 },
-  lowCruise: { rpm: 0, speed: 0, fuel: 0 },
-  highCruise: { rpm: 0, speed: 0, fuel: 0 },
-  wot: { rpm: 0, speed: 0, fuel: 0 },
+  idle: { rpm: 850, speed: 0, fuel: 0.8 },
+  lowCruise: { rpm: 3000, speed: 21, fuel: 10 },
+  highCruise: { rpm: 4500, speed: 30, fuel: 17 },
+  wot: { rpm: 5850, speed: 39, fuel: 22.5 },
 };
 
 function updateDashboard(speed, distance, fuel, rpm) {
@@ -65,20 +65,49 @@ drawerHandle.addEventListener('click', () => {
   drawer.classList.toggle('open');
 });
 
-// Dra for å åpne/lukke
-drawerHandle.addEventListener('mousedown', (event) => {
-  isDragging = true;
-  startY = event.clientY;
-  startBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
-});
+// Start dra med mus eller touch
+drawerHandle.addEventListener('mousedown', startDrag);
+drawerHandle.addEventListener('touchstart', startDrag, { passive: false });
 
-window.addEventListener('mousemove', (event) => {
+function startDrag(event) {
+  isDragging = true;
+  startY = event.touches ? event.touches[0].clientY : event.clientY;
+  startBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
+  event.preventDefault(); // Hindrer scroll under drag
+}
+
+// Dra med mus eller touch
+window.addEventListener('mousemove', drag);
+window.addEventListener('touchmove', drag, { passive: false });
+
+function drag(event) {
   if (isDragging) {
-    const deltaY = startY - event.clientY;
+    const currentY = event.touches ? event.touches[0].clientY : event.clientY;
+    const deltaY = startY - currentY;
     const newBottom = Math.max(-300, Math.min(0, startBottom - deltaY));
     drawer.style.bottom = `${newBottom}px`;
   }
-});
+}
+
+// Slipp med mus eller touch
+window.addEventListener('mouseup', endDrag);
+window.addEventListener('touchend', endDrag);
+
+function endDrag() {
+  if (isDragging) {
+    isDragging = false;
+    // Snap til åpen/lukket
+    const currentBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
+    if (currentBottom > -150) {
+      drawer.classList.add('open');
+      drawer.style.bottom = '0px';
+    } else {
+      drawer.classList.remove('open');
+      drawer.style.bottom = '-300px';
+    }
+  }
+}
+
 
 window.addEventListener('mouseup', () => {
   if (isDragging) {
