@@ -15,14 +15,18 @@ const calibrationData = {
 };
 
 function updateDashboard(speed, distance, fuel, rpm) {
-    document.getElementById('speed').textContent = speed.toFixed(1);
-    document.getElementById('distance').textContent = distance.toFixed(2);
+    const speedKnots = speed / 1.852; // Konverter hastighet til knop
+    const distanceNm = distance / 1.852; // Konverter distanse til nautiske mil
+
+    document.getElementById('speed').textContent = speedKnots.toFixed(1);
+    document.getElementById('distance').textContent = distanceNm.toFixed(2);
     document.getElementById('fuel-consumption').textContent = fuel.toFixed(2);
     document.getElementById('interpolated-rpm').textContent = rpm.toFixed(2);
-    document.getElementById('fuel-per-nm').textContent = distance > 0
-        ? (fuel / (distance / 1.852)).toFixed(2)
+    document.getElementById('fuel-per-nm').textContent = distanceNm > 0
+        ? (fuel / distanceNm).toFixed(2)
         : '0';
 }
+
 
 
 //toggle simulering
@@ -70,23 +74,23 @@ document.getElementById('reset-data').addEventListener('click', () => {
 
 
 // Simuleringsfunksjon
-
 function startSimulation() {
     stopSimulation(); // Stopp eventuell eksisterende simulering
     simulationInterval = setInterval(() => {
         if (isSimulationMode) {
             // Beregn distanse basert på simulert hastighet
-            const distanceStep = (simulatedSpeed * 1.852) / 3600; // km per sekund
+            const distanceStep = simulatedSpeed / 3600; // nm per sekund
             distanceTraveled += distanceStep;
 
             // Beregn interpolerte verdier
-            const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
+            const interpolatedValues = calculateInterpolatedValues(simulatedSpeed * 1.852); // Konverter knop til km/h
 
             // Oppdater dashboard med de nye verdiene
-            updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+            updateDashboard(simulatedSpeed * 1.852, distanceTraveled * 1.852, interpolatedValues.fuel, interpolatedValues.rpm); // Konverter tilbake til km/h for kalkulasjoner
         }
     }, SIMULATION_UPDATE_INTERVAL);
 }
+
 
 
 function stopSimulation() {
