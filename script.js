@@ -51,11 +51,10 @@ document.getElementById('reset-data').addEventListener('click', () => {
 // Simuleringsfunksjon
 
 function startSimulation() {
-    if (simulationInterval) return; // Unngå flere intervaller
+    stopSimulation(); // Stopp eventuell eksisterende simulering
     simulationInterval = setInterval(() => {
         if (isSimulationMode) {
-            // Beregn tilbakelagt distanse basert på hastighet
-            const distanceStep = (simulatedSpeed * 1.852) / 3600; // km på én sekund
+            const distanceStep = (simulatedSpeed * 1.852) / 3600; // km per sekund
             distanceTraveled += distanceStep;
 
             const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
@@ -65,9 +64,12 @@ function startSimulation() {
 }
 
 function stopSimulation() {
-    clearInterval(simulationInterval);
-    simulationInterval = null;
+    if (simulationInterval) {
+        clearInterval(simulationInterval);
+        simulationInterval = null;
+    }
 }
+
 
 
 // Oppdater kalibreringsdata fra tabellen
@@ -124,10 +126,12 @@ function getCalibrationData() {
     return y1 + ((y2 - y1) * (x - x1)) / (x2 - x1);
   }
   
-  navigator.geolocation.watchPosition((position) => {
-    let speed = isSimulationMode ? simulatedSpeed : (position.coords.speed || 0);
 
-    if (!isSimulationMode && lastPosition) {
+navigator.geolocation.watchPosition((position) => {
+    if (isSimulationMode) return; // Ignorer GPS-data i simuleringsmodus
+
+    let speed = position.coords.speed || 0;
+    if (lastPosition) {
         const distance = calculateDistance(lastPosition, {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -135,7 +139,7 @@ function getCalibrationData() {
         distanceTraveled += distance;
     }
 
-    lastPosition = isSimulationMode ? lastPosition : {
+    lastPosition = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
     };
@@ -143,6 +147,7 @@ function getCalibrationData() {
     const interpolatedValues = calculateInterpolatedValues(speed);
     updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
 });
+
 
 function calculateDistance(pos1, pos2) {
   const R = 6371; // Radius of Earth in km
@@ -159,9 +164,11 @@ function calculateDistance(pos1, pos2) {
 }
 
 document.getElementById('reset-data').addEventListener('click', () => {
-  distanceTraveled = 0;
-  updateDashboard(0, 0, 0, 0);
+    stopSimulation();
+    distanceTraveled = 0;
+    updateDashboard(0, 0, 0, 0);
 });
+
 
 
 
