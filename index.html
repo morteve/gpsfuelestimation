@@ -21,48 +21,52 @@
     </div>
     <section>
         <h2>Kalibrering</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Mode</th>
-              <th>RPM</th>
-              <th>Speed (km/h)</th>
-              <th>Fuel (l/h)</th>
-            </tr>
-          </thead>
-          <tbody id="calibration-table">
-            <tr>
-              <td>Idle</td>
-              <td><input type="number" id="idle-rpm" value="850"></td>
-              <td><input type="number" id="idle-speed" value="0"></td>
-              <td><input type="number" id="idle-fuel" value="0.8"></td>
-            </tr>
-            <tr>
-              <td>Low Cruise</td>
-              <td><input type="number" id="low-rpm" value="3000"></td>
-              <td><input type="number" id="low-speed" value="21"></td>
-              <td><input type="number" id="low-fuel" value="10"></td>
-            </tr>
-            <tr>
-              <td>High Cruise</td>
-              <td><input type="number" id="high-rpm" value="4500"></td>
-              <td><input type="number" id="high-speed" value="30"></td>
-              <td><input type="number" id="high-fuel" value="17"></td>
-            </tr>
-            <tr>
-              <td>WOT</td>
-              <td><input type="number" id="wot-rpm" value="5850"></td>
-              <td><input type="number" id="wot-speed" value="39"></td>
-              <td><input type="number" id="wot-fuel" value="22.5"></td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="calibration-section">
+          <div class="calibration-block">
+            <h3>Idle</h3>
+            <label for="idle-rpm">RPM:</label>
+            <input type="number" id="idle-rpm" value="850">
+            <label for="idle-speed">Speed (km/h):</label>
+            <input type="number" id="idle-speed" value="0">
+            <label for="idle-fuel">Fuel (l/h):</label>
+            <input type="number" id="idle-fuel" value="0.8">
+          </div>
+          <div class="calibration-block">
+            <h3>Low Cruise</h3>
+            <label for="low-rpm">RPM:</label>
+            <input type="number" id="low-rpm" value="3000">
+            <label for="low-speed">Speed (km/h):</label>
+            <input type="number" id="low-speed" value="21">
+            <label for="low-fuel">Fuel (l/h):</label>
+            <input type="number" id="low-fuel" value="10">
+          </div>
+          <div class="calibration-block">
+            <h3>High Cruise</h3>
+            <label for="high-rpm">RPM:</label>
+            <input type="number" id="high-rpm" value="4500">
+            <label for="high-speed">Speed (km/h):</label>
+            <input type="number" id="high-speed" value="30">
+            <label for="high-fuel">Fuel (l/h):</label>
+            <input type="number" id="high-fuel" value="17">
+          </div>
+          <div class="calibration-block">
+            <h3>WOT</h3>
+            <label for="wot-rpm">RPM:</label>
+            <input type="number" id="wot-rpm" value="5850">
+            <label for="wot-speed">Speed (km/h):</label>
+            <input type="number" id="wot-speed" value="39">
+            <label for="wot-fuel">Fuel (l/h):</label>
+            <input type="number" id="wot-fuel" value="22.5">
+          </div>
+        </div>
         <div>
           <label for="gear-ratio">Gear Ratio:</label>
           <input type="number" id="gear-ratio" value="1.0">
         </div>
         <button id="reset-data">Nullstill data</button>
-      </section>      
+      </section>
+      
+      
   </main>
 
   <script src="script.js"></script>

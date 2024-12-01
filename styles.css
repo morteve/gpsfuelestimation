@@ -69,4 +69,51 @@ body {
       padding: 8px 16px;
     }
   }
+
+  //nytt
+  .calibration-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .calibration-block {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 5px;
+    background: #f9f9f9;
+  }
+  
+  .calibration-block h3 {
+    margin-top: 0;
+  }
+  
+  .calibration-block label {
+    display: block;
+    font-size: 14px;
+    margin: 5px 0;
+  }
+  
+  .calibration-block input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
   
