@@ -1,6 +1,5 @@
-// GPS og beregninger
 let speedUnit = 'km/h'; // Standard
-let distanceTraveled = 0; 
+let distanceTraveled = 0;
 let lastPosition = null;
 
 // Kalibreringsdata
@@ -20,14 +19,11 @@ function updateDashboard(speed, distance, fuel, rpm) {
 }
 
 function calculateInterpolatedValues(speed) {
-  // Enkel kvadratisk interpolasjon
-  const { idle, lowCruise, highCruise, wot } = calibrationData;
-  const rpm = Math.pow(speed, 2); // Placeholder-funksjon
-  const fuel = Math.pow(speed, 2) * 0.1; // Placeholder-funksjon
+  const rpm = Math.pow(speed, 2); // Placeholder
+  const fuel = Math.pow(speed, 2) * 0.1; // Placeholder
   return { rpm, fuel };
 }
 
-// Håndtering av GPS-data
 navigator.geolocation.watchPosition((position) => {
   const { latitude, longitude, speed } = position.coords;
   if (lastPosition) {
@@ -50,69 +46,9 @@ function calculateDistance(pos1, pos2) {
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distance in km
-}
-const drawer = document.getElementById('drawer');
-const drawerHandle = document.getElementById('drawer-handle');
-
-let isDragging = false;
-let startY = 0;
-let startBottom = 0;
-
-// Åpne/lukke med klikk
-drawerHandle.addEventListener('click', () => {
-  if (!isDragging) {
-    drawer.classList.toggle('open');
-    drawer.style.bottom = drawer.classList.contains('open') ? '0px' : '-300px';
-  }
-});
-
-// Start dra med mus eller touch
-drawerHandle.addEventListener('mousedown', startDrag);
-drawerHandle.addEventListener('touchstart', startDrag, { passive: false });
-
-function startDrag(event) {
-  isDragging = true;
-  startY = event.touches ? event.touches[0].clientY : event.clientY;
-  startBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
-  event.preventDefault(); // Hindrer scrolling under drag
+  return R * c;
 }
 
-// Dra med mus eller touch
-window.addEventListener('mousemove', drag);
-window.addEventListener('touchmove', drag, { passive: false });
-
-function drag(event) {
-  if (isDragging) {
-    const currentY = event.touches ? event.touches[0].clientY : event.clientY;
-    const deltaY = startY - currentY;
-    const newBottom = Math.max(-300, Math.min(0, startBottom - deltaY));
-    drawer.style.bottom = `${newBottom}px`;
-  }
-}
-
-// Slipp med mus eller touch
-window.addEventListener('mouseup', endDrag);
-window.addEventListener('touchend', endDrag);
-
-function endDrag() {
-  if (isDragging) {
-    isDragging = false;
-    // Snap til åpen/lukket
-    const currentBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
-    if (currentBottom > -150) {
-      drawer.classList.add('open');
-      drawer.style.bottom = '0px';
-    } else {
-      drawer.classList.remove('open');
-      drawer.style.bottom = '-300px';
-    }
-  }
-}
-
-
-
-// Nullstill data
 document.getElementById('reset-data').addEventListener('click', () => {
   distanceTraveled = 0;
   updateDashboard(0, 0, 0, 0);

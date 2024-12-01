@@ -9,7 +9,6 @@
 <body>
   <header>
     <h1>Speed & Fuel Tracker</h1>
-    <button id="drawer-toggle">☰</button>
   </header>
 
   <main>
@@ -20,13 +19,7 @@
       <p>Forbruk per nautisk mil: <span id="fuel-per-nm">0</span> l/nm</p>
       <p>Tilbakelagt distanse: <span id="distance">0</span> km</p>
     </div>
-  </main>
-
-  <aside id="drawer">
-    <div id="drawer-handle">
-      <span>▲</span>
-    </div>
-    <div id="drawer-content">
+    <section>
       <h2>Kalibrering</h2>
       <table>
         <thead>
@@ -50,10 +43,9 @@
         <input type="number" id="gear-ratio" placeholder="1.0">
       </div>
       <button id="reset-data">Nullstill data</button>
-    </div>
-  </aside>
-  
+    </section>
+  </main>
 
-  <script src="app.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
