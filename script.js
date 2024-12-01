@@ -18,22 +18,70 @@ function updateDashboard(speed, distance, fuel, rpm) {
   document.getElementById('fuel-per-nm').textContent = (fuel / (distance / 1.852)).toFixed(2);
 }
 
-function calculateInterpolatedValues(speed) {
-  const rpm = Math.pow(speed, 2); // Placeholder
-  const fuel = Math.pow(speed, 2) * 0.1; // Placeholder
-  return { rpm, fuel };
-}
-
-navigator.geolocation.watchPosition((position) => {
-  const { latitude, longitude, speed } = position.coords;
-  if (lastPosition) {
-    const distance = calculateDistance(lastPosition, { latitude, longitude });
-    distanceTraveled += distance;
+// Oppdater kalibreringsdata fra tabellen
+function getCalibrationData() {
+    return {
+      idle: {
+        rpm: parseFloat(document.getElementById('idle-rpm').value),
+        speed: parseFloat(document.getElementById('idle-speed').value),
+        fuel: parseFloat(document.getElementById('idle-fuel').value),
+      },
+      lowCruise: {
+        rpm: parseFloat(document.getElementById('low-rpm').value),
+        speed: parseFloat(document.getElementById('low-speed').value),
+        fuel: parseFloat(document.getElementById('low-fuel').value),
+      },
+      highCruise: {
+        rpm: parseFloat(document.getElementById('high-rpm').value),
+        speed: parseFloat(document.getElementById('high-speed').value),
+        fuel: parseFloat(document.getElementById('high-fuel').value),
+      },
+      wot: {
+        rpm: parseFloat(document.getElementById('wot-rpm').value),
+        speed: parseFloat(document.getElementById('wot-speed').value),
+        fuel: parseFloat(document.getElementById('wot-fuel').value),
+      },
+    };
   }
-  lastPosition = { latitude, longitude };
-  const interpolatedValues = calculateInterpolatedValues(speed || 0);
-  updateDashboard(speed || 0, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
-});
+
+  function calculateInterpolatedValues(speed) {
+    const data = getCalibrationData();
+  
+    // Enkel interpolering mellom punktene
+    let rpm, fuel;
+  
+    if (speed <= data.idle.speed) {
+      rpm = data.idle.rpm;
+      fuel = data.idle.fuel;
+    } else if (speed <= data.lowCruise.speed) {
+      rpm = interpolate(data.idle.speed, data.lowCruise.speed, data.idle.rpm, data.lowCruise.rpm, speed);
+      fuel = interpolate(data.idle.speed, data.lowCruise.speed, data.idle.fuel, data.lowCruise.fuel, speed);
+    } else if (speed <= data.highCruise.speed) {
+      rpm = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.rpm, data.highCruise.rpm, speed);
+      fuel = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.fuel, data.highCruise.fuel, speed);
+    } else {
+      rpm = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.rpm, data.wot.rpm, speed);
+      fuel = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.fuel, data.wot.fuel, speed);
+    }
+  
+    return { rpm, fuel };
+  }
+  
+  // Funksjon for lineær interpolering
+  function interpolate(x1, x2, y1, y2, x) {
+    return y1 + ((y2 - y1) * (x - x1)) / (x2 - x1);
+  }
+  
+  navigator.geolocation.watchPosition((position) => {
+    const { latitude, longitude, speed } = position.coords;
+    if (lastPosition) {
+      const distance = calculateDistance(lastPosition, { latitude, longitude });
+      distanceTraveled += distance;
+    }
+    lastPosition = { latitude, longitude };
+    const interpolatedValues = calculateInterpolatedValues(speed || 0);
+    updateDashboard(speed || 0, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+  });
 
 function calculateDistance(pos1, pos2) {
   const R = 6371; // Radius of Earth in km

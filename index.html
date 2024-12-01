@@ -20,30 +20,49 @@
       <p>Tilbakelagt distanse: <span id="distance">0</span> km</p>
     </div>
     <section>
-      <h2>Kalibrering</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>RPM</th>
-            <th>Speed (knots/km/h)</th>
-            <th>Fuel (l/h)</th>
-          </tr>
-        </thead>
-        <tbody id="calibration-table">
-          <tr>
-            <td>Idle</td>
-            <td><input type="number" id="idle-speed" placeholder="0"></td>
-            <td><input type="number" id="idle-fuel" placeholder="0"></td>
-          </tr>
-          <!-- Flere rader -->
-        </tbody>
-      </table>
-      <div>
-        <label for="gear-ratio">Gear Ratio:</label>
-        <input type="number" id="gear-ratio" placeholder="1.0">
-      </div>
-      <button id="reset-data">Nullstill data</button>
-    </section>
+        <h2>Kalibrering</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th>RPM</th>
+              <th>Speed (km/h)</th>
+              <th>Fuel (l/h)</th>
+            </tr>
+          </thead>
+          <tbody id="calibration-table">
+            <tr>
+              <td>Idle</td>
+              <td><input type="number" id="idle-rpm" value="850"></td>
+              <td><input type="number" id="idle-speed" value="0"></td>
+              <td><input type="number" id="idle-fuel" value="0.8"></td>
+            </tr>
+            <tr>
+              <td>Low Cruise</td>
+              <td><input type="number" id="low-rpm" value="3000"></td>
+              <td><input type="number" id="low-speed" value="21"></td>
+              <td><input type="number" id="low-fuel" value="10"></td>
+            </tr>
+            <tr>
+              <td>High Cruise</td>
+              <td><input type="number" id="high-rpm" value="4500"></td>
+              <td><input type="number" id="high-speed" value="30"></td>
+              <td><input type="number" id="high-fuel" value="17"></td>
+            </tr>
+            <tr>
+              <td>WOT</td>
+              <td><input type="number" id="wot-rpm" value="5850"></td>
+              <td><input type="number" id="wot-speed" value="39"></td>
+              <td><input type="number" id="wot-fuel" value="22.5"></td>
+            </tr>
+          </tbody>
+        </table>
+        <div>
+          <label for="gear-ratio">Gear Ratio:</label>
+          <input type="number" id="gear-ratio" value="1.0">
+        </div>
+        <button id="reset-data">Nullstill data</button>
+      </section>      
   </main>
 
   <script src="script.js"></script>
