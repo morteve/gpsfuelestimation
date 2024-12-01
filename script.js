@@ -3,6 +3,8 @@ let distanceTraveled = 0;
 let lastPosition = null;
 let isSimulationMode = false;
 let simulatedSpeed = 0;
+let simulationInterval = null; // Intervallet for simuleringsoppdatering
+const SIMULATION_UPDATE_INTERVAL = 1000; // Oppdater hver 1 sekund
 
 // Kalibreringsdata
 const calibrationData = {
@@ -24,12 +26,48 @@ function updateDashboard(speed, distance, fuel, rpm) {
 document.getElementById('simulation-toggle').addEventListener('change', (event) => {
     isSimulationMode = event.target.checked;
     document.getElementById('simulation-controls').style.display = isSimulationMode ? 'block' : 'none';
+
+    if (isSimulationMode) {
+        startSimulation();
+    } else {
+        stopSimulation();
+    }
 });
+
 
 document.getElementById('simulated-speed').addEventListener('input', (event) => {
     simulatedSpeed = parseFloat(event.target.value);
     document.getElementById('simulated-speed-value').textContent = simulatedSpeed.toFixed(1);
 });
+
+document.getElementById('reset-data').addEventListener('click', () => {
+    distanceTraveled = 0;
+    updateDashboard(0, 0, 0, 0);
+    stopSimulation();
+});
+
+
+
+// Simuleringsfunksjon
+
+function startSimulation() {
+    if (simulationInterval) return; // Unngå flere intervaller
+    simulationInterval = setInterval(() => {
+        if (isSimulationMode) {
+            // Beregn tilbakelagt distanse basert på hastighet
+            const distanceStep = (simulatedSpeed * 1.852) / 3600; // km på én sekund
+            distanceTraveled += distanceStep;
+
+            const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
+            updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+        }
+    }, SIMULATION_UPDATE_INTERVAL);
+}
+
+function stopSimulation() {
+    clearInterval(simulationInterval);
+    simulationInterval = null;
+}
 
 
 // Oppdater kalibreringsdata fra tabellen
