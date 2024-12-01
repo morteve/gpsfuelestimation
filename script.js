@@ -111,21 +111,6 @@ function endDrag() {
 }
 
 
-window.addEventListener('mouseup', () => {
-  if (isDragging) {
-    isDragging = false;
-    // Snap til åpen/lukket
-    const currentBottom = parseInt(window.getComputedStyle(drawer).bottom, 10);
-    if (currentBottom > -150) {
-      drawer.classList.add('open');
-      drawer.style.bottom = '0px';
-    } else {
-      drawer.classList.remove('open');
-      drawer.style.bottom = '-300px';
-    }
-  }
-});
-
 
 // Nullstill data
 document.getElementById('reset-data').addEventListener('click', () => {
