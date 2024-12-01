@@ -1,6 +1,8 @@
 let speedUnit = 'km/h'; // Standard
 let distanceTraveled = 0;
 let lastPosition = null;
+let isSimulationMode = false;
+let simulatedSpeed = 0;
 
 // Kalibreringsdata
 const calibrationData = {
@@ -17,6 +19,18 @@ function updateDashboard(speed, distance, fuel, rpm) {
   document.getElementById('interpolated-rpm').textContent = rpm.toFixed(2);
   document.getElementById('fuel-per-nm').textContent = (fuel / (distance / 1.852)).toFixed(2);
 }
+
+//toggle simulering
+document.getElementById('simulation-toggle').addEventListener('change', (event) => {
+    isSimulationMode = event.target.checked;
+    document.getElementById('simulation-controls').style.display = isSimulationMode ? 'block' : 'none';
+});
+
+document.getElementById('simulated-speed').addEventListener('input', (event) => {
+    simulatedSpeed = parseFloat(event.target.value);
+    document.getElementById('simulated-speed-value').textContent = simulatedSpeed.toFixed(1);
+});
+
 
 // Oppdater kalibreringsdata fra tabellen
 function getCalibrationData() {
@@ -73,15 +87,24 @@ function getCalibrationData() {
   }
   
   navigator.geolocation.watchPosition((position) => {
-    const { latitude, longitude, speed } = position.coords;
-    if (lastPosition) {
-      const distance = calculateDistance(lastPosition, { latitude, longitude });
-      distanceTraveled += distance;
+    let speed = isSimulationMode ? simulatedSpeed : (position.coords.speed || 0);
+
+    if (!isSimulationMode && lastPosition) {
+        const distance = calculateDistance(lastPosition, {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+        });
+        distanceTraveled += distance;
     }
-    lastPosition = { latitude, longitude };
-    const interpolatedValues = calculateInterpolatedValues(speed || 0);
-    updateDashboard(speed || 0, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
-  });
+
+    lastPosition = isSimulationMode ? lastPosition : {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+    };
+
+    const interpolatedValues = calculateInterpolatedValues(speed);
+    updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+});
 
 function calculateDistance(pos1, pos2) {
   const R = 6371; // Radius of Earth in km
@@ -101,3 +124,9 @@ document.getElementById('reset-data').addEventListener('click', () => {
   distanceTraveled = 0;
   updateDashboard(0, 0, 0, 0);
 });
+
+
+
+
+
+

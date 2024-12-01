@@ -20,6 +20,14 @@
       <p>Tilbakelagt distanse: <span id="distance">0</span> km</p>
     </div>
     <section>
+            <h2>Simuleringsmodus</h2>
+            <label for="simulation-toggle">Bruk simulert hastighet:</label>
+            <input type="checkbox" id="simulation-toggle">
+            <div id="simulation-controls" style="display: none;">
+              <label for="simulated-speed">Simulert hastighet (knots):</label>
+              <input type="range" id="simulated-speed" min="0" max="50" value="0">
+              <span id="simulated-speed-value">0</span> knots
+            </div>
         <h2>Kalibrering</h2>
         <div class="calibration-section">
           <div class="calibration-block">
@@ -64,6 +72,17 @@
           <input type="number" id="gear-ratio" value="1.0">
         </div>
         <button id="reset-data">Nullstill data</button>
+        <section>
+  <h2>Simuleringsmodus</h2>
+  <label for="simulation-toggle">Bruk simulert hastighet:</label>
+  <input type="checkbox" id="simulation-toggle">
+  <div id="simulation-controls" style="display: none;">
+    <label for="simulated-speed">Simulert hastighet (knots):</label>
+    <input type="range" id="simulated-speed" min="0" max="50" value="0">
+    <span id="simulated-speed-value">0</span> knots
+  </div>
+</section>
+
       </section>
       
       

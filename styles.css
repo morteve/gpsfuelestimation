@@ -70,7 +70,6 @@ body {
     }
   }
 
-  //nytt
   .calibration-section {
     display: flex;
     flex-direction: column;
@@ -116,4 +115,12 @@ body {
   button:hover {
     background-color: #0056b3;
   }
-  
+
+
+#simulation-controls {
+    margin-top: 10px;
+    text-align: center;
+}
+#simulated-speed {
+    width: 80%;
+}
