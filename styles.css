@@ -117,10 +117,12 @@ body {
   }
 
 
-#simulation-controls {
+  #simulation-controls {
     margin-top: 10px;
     text-align: center;
+    display: none; /* Skjult som standard, men vist ved behov */
 }
+
 #simulated-speed {
     width: 80%;
 }

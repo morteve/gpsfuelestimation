@@ -28,7 +28,9 @@ function updateDashboard(speed, distance, fuel, rpm) {
 //toggle simulering
 document.getElementById('simulation-toggle').addEventListener('change', (event) => {
     isSimulationMode = event.target.checked;
-    document.getElementById('simulation-controls').style.display = isSimulationMode ? 'block' : 'none';
+
+    const controls = document.getElementById('simulation-controls');
+    controls.style.display = isSimulationMode ? 'block' : 'none';
 
     if (isSimulationMode) {
         startSimulation();
@@ -36,6 +38,7 @@ document.getElementById('simulation-toggle').addEventListener('change', (event) 
         stopSimulation();
     }
 });
+
 
 
 document.getElementById('simulated-speed').addEventListener('input', (event) => {
