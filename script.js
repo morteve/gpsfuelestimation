@@ -22,8 +22,8 @@ function updateDashboard(speed, distance, fuel, rpm) {
     document.getElementById('distance').textContent = distanceNm.toFixed(2);
     document.getElementById('fuel-consumption').textContent = fuel.toFixed(2);
     document.getElementById('interpolated-rpm').textContent = rpm.toFixed(2);
-    document.getElementById('fuel-per-nm').textContent = distanceNm > 0
-        ? (fuel / distanceNm).toFixed(2)
+    document.getElementById('fuel-per-nm').textContent = speedKnots > 0
+        ? (fuel / speedKnots).toFixed(2) // Beregn forbruk basert på hastighet
         : '0';
 }
 
@@ -98,7 +98,10 @@ function stopSimulation() {
         clearInterval(simulationInterval);
         simulationInterval = null;
     }
+    simulatedSpeed = 0; // Nullstill simulert hastighet
+    updateDashboard(0, distanceTraveled, 0, 0); // Oppdater dashbordet til 0 for hastighet og forbruk
 }
+
 
 
 
