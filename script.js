@@ -8,6 +8,7 @@ let simulatedSpeed = 0;
 let simulationInterval = null; // Intervallet for simuleringsoppdatering
 const SIMULATION_UPDATE_INTERVAL = 1000; // Oppdater hver 1 sekund
 let fuelChart; // Definer globalt
+let isMeasurementActive = false;
 
 function updateDashboard(speed, distance, fuel, rpm) {
     const speedKnots = speed; // Hastighet er allerede i knop
@@ -68,6 +69,24 @@ document.getElementById('reset-data').addEventListener('click', () => {
     totalFuelConsumption = 0; // Nullstill totalt drivstofforbruk
     updateDashboard(0, 0, 0, 0);
     stopSimulation();
+});
+
+document.getElementById('start-measurement').addEventListener('click', () => {
+    isMeasurementActive = true;
+    console.log('Measurement started');
+});
+
+document.getElementById('pause-measurement').addEventListener('click', () => {
+    isMeasurementActive = false;
+    console.log('Measurement paused');
+});
+
+document.getElementById('stop-measurement').addEventListener('click', () => {
+    isMeasurementActive = false;
+    distanceTraveled = 0;
+    totalFuelConsumption = 0;
+    updateDashboard(0, 0, 0, 0);
+    console.log('Measurement stopped');
 });
 
 // Simuleringsfunksjon
@@ -158,7 +177,7 @@ function interpolate(x1, x2, y1, y2, x) {
 }
 
 navigator.geolocation.watchPosition((position) => {
-    if (isSimulationMode) return; // Ignorer GPS-data i simuleringsmodus
+    if (isSimulationMode || !isMeasurementActive) return; // Ignorer GPS-data i simuleringsmodus eller hvis måling er inaktiv
 
     let speed = position.coords.speed || 0;
     if (speed === 0 && lastPosition && lastTimestamp) {
