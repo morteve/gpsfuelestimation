@@ -1,6 +1,7 @@
 let speedUnit = 'knots'; // Standard
 let distanceTraveled = 0;
 let lastPosition = null;
+let lastTimestamp = null;
 let isSimulationMode = false;
 let simulatedSpeed = 0;
 let simulationInterval = null; // Intervallet for simuleringsoppdatering
@@ -153,6 +154,15 @@ navigator.geolocation.watchPosition((position) => {
     if (isSimulationMode) return; // Ignorer GPS-data i simuleringsmodus
 
     let speed = position.coords.speed || 0;
+    if (speed === 0 && lastPosition && lastTimestamp) {
+        const distance = calculateDistance(lastPosition, {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+        });
+        const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
+        speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
+    }
+
     if (lastPosition) {
         const distance = calculateDistance(lastPosition, {
             latitude: position.coords.latitude,
@@ -165,6 +175,7 @@ navigator.geolocation.watchPosition((position) => {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
     };
+    lastTimestamp = position.timestamp;
 
     const interpolatedValues = calculateInterpolatedValues(speed);
     updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
