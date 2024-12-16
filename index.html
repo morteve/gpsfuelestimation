@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Speed & Fuel Tracker</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header>
@@ -18,17 +19,16 @@
         <p>Interpolert forbruk: <span id="fuel-consumption">0</span> l/h</p>
         <p>Forbruk per nautisk mil: <span id="fuel-per-nm">0</span> l/nm</p>     
         <p>Tilbakelagt distanse: <span id="distance">0</span> <span id="distance-unit">nm</span></p>
-
     </div>
     <section>
-            <h2>Simuleringsmodus</h2>
-            <label for="simulation-toggle">Bruk simulert hastighet:</label>
-            <input type="checkbox" id="simulation-toggle">
-            <div id="simulation-controls" style="display: none;">
-              <label for="simulated-speed">Simulert hastighet (knots):</label>
-              <input type="range" id="simulated-speed" min="0" max="50" value="0">
-              <span id="simulated-speed-value">0</span> knots
-            </div>
+        <h2>Simuleringsmodus</h2>
+        <label for="simulation-toggle">Bruk simulert hastighet:</label>
+        <input type="checkbox" id="simulation-toggle">
+        <div id="simulation-controls" style="display: none;">
+          <label for="simulated-speed">Simulert hastighet (knots):</label>
+          <input type="range" id="simulated-speed" min="0" max="50" value="0">
+          <span id="simulated-speed-value">0</span> knots
+        </div>
         <h2>Kalibrering</h2>
         <div class="calibration-section">
           <div class="calibration-block">
@@ -73,8 +73,9 @@
           <input type="number" id="gear-ratio" value="1.0">
         </div>
         <button id="reset-data">Nullstill data</button>
-     <section>
-          
+        <h2>Interpolert Forbruk</h2>
+        <canvas id="fuelChart" width="400" height="200"></canvas>
+    </section>
   </main>
 
   <script src="script.js"></script>
