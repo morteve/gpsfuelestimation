@@ -107,12 +107,66 @@ document.getElementById('save-fuel-tank').addEventListener('click', () => {
 
 function startMeasurement() {
     console.log('Measurement started');
-    // Additional logic to start measurement if needed
+    if (isSimulationMode) {
+        startSimulation();
+    } else {
+        startGPSMeasurement();
+    }
 }
 
 function pauseMeasurement() {
     console.log('Measurement paused');
-    // Additional logic to pause measurement if needed
+    if (isSimulationMode) {
+        stopSimulation();
+    } else {
+        stopGPSMeasurement();
+    }
+}
+
+function startGPSMeasurement() {
+    navigator.geolocation.watchPosition((position) => {
+        if (!isMeasurementActive) return; // Ignorer GPS-data hvis måling er inaktiv
+
+        let speed = position.coords.speed || 0;
+        if (speed === 0 && lastPosition && lastTimestamp) {
+            const distance = calculateDistance(lastPosition, {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+            });
+            const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
+            speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
+        }
+
+        // Filter out unrealistic speed changes
+        if (lastPosition && lastTimestamp) {
+            const maxSpeedChange = 10; // Max change in knots per second
+            const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
+            const speedChange = Math.abs(speed - (distanceTraveled / timeElapsed));
+            if (speedChange > maxSpeedChange) {
+                console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
+                return;
+            }
+        }
+
+        if (lastTimestamp) {
+            const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
+            distanceTraveled += speed * timeElapsed; // nm
+        }
+
+        lastPosition = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+        };
+        lastTimestamp = position.timestamp;
+
+        const interpolatedValues = calculateInterpolatedValues(speed);
+        updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+        updateTotalFuelConsumption(interpolatedValues.fuel);
+    });
+}
+
+function stopGPSMeasurement() {
+    // Logic to stop GPS measurement if needed
 }
 
 // Simuleringsfunksjon
