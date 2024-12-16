@@ -177,31 +177,44 @@ function generateFuelConsumptionData() {
     const data = getCalibrationData();
     const speedRange = [];
     const fuelConsumption = [];
+    const rpmValues = [];
 
     for (let speed = 0; speed <= data.wot.speed; speed += 1) {
         const interpolatedValues = calculateInterpolatedValues(speed);
         speedRange.push(speed);
         fuelConsumption.push(interpolatedValues.fuel);
+        rpmValues.push(interpolatedValues.rpm);
     }
 
-    return { speedRange, fuelConsumption };
+    return { speedRange, fuelConsumption, rpmValues };
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const ctx = document.getElementById('fuelChart').getContext('2d');
-    const { speedRange, fuelConsumption } = generateFuelConsumptionData();
+    const { speedRange, fuelConsumption, rpmValues } = generateFuelConsumptionData();
 
     const fuelChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: speedRange,
-            datasets: [{
-                label: 'Fuel Consumption (l/h)',
-                data: fuelConsumption,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-                fill: false
-            }]
+            datasets: [
+                {
+                    label: 'Fuel Consumption (l/h)',
+                    data: fuelConsumption,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false,
+                    yAxisID: 'y1'
+                },
+                {
+                    label: 'RPM',
+                    data: rpmValues,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    fill: false,
+                    yAxisID: 'y2'
+                }
+            ]
         },
         options: {
             scales: {
@@ -211,10 +224,23 @@ document.addEventListener('DOMContentLoaded', (event) => {
                         text: 'Speed (km/h)'
                     }
                 },
-                y: {
+                y1: {
+                    type: 'linear',
+                    position: 'left',
                     title: {
                         display: true,
                         text: 'Fuel Consumption (l/h)'
+                    }
+                },
+                y2: {
+                    type: 'linear',
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'RPM'
+                    },
+                    grid: {
+                        drawOnChartArea: false // only want the grid lines for one axis to show up
                     }
                 }
             }
@@ -224,9 +250,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // Update chart when calibration data changes
     document.querySelectorAll('.calibration-block input').forEach(input => {
         input.addEventListener('input', () => {
-            const { speedRange, fuelConsumption } = generateFuelConsumptionData();
+            const { speedRange, fuelConsumption, rpmValues } = generateFuelConsumptionData();
             fuelChart.data.labels = speedRange;
             fuelChart.data.datasets[0].data = fuelConsumption;
+            fuelChart.data.datasets[1].data = rpmValues;
             fuelChart.update();
         });
     });
