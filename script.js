@@ -6,14 +6,6 @@ let simulatedSpeed = 0;
 let simulationInterval = null; // Intervallet for simuleringsoppdatering
 const SIMULATION_UPDATE_INTERVAL = 1000; // Oppdater hver 1 sekund
 
-// Kalibreringsdata
-const calibrationData = {
-  idle: { rpm: 850, speed: 0, fuel: 0.8 },
-  lowCruise: { rpm: 3000, speed: 21, fuel: 10 },
-  highCruise: { rpm: 4500, speed: 30, fuel: 17 },
-  wot: { rpm: 5850, speed: 39, fuel: 22.5 },
-};
-
 function updateDashboard(speed, distance, fuel, rpm) {
     const speedKnots = speed / 1.852; // Konverter hastighet til knop
     const distanceNm = distance / 1.852; // Konverter distanse til nautiske mil
@@ -27,9 +19,7 @@ function updateDashboard(speed, distance, fuel, rpm) {
         : '0';
 }
 
-
-
-//toggle simulering
+// Toggle simulering
 document.getElementById('simulation-toggle').addEventListener('change', (event) => {
     isSimulationMode = event.target.checked;
 
@@ -46,10 +36,6 @@ document.getElementById('simulation-toggle').addEventListener('change', (event) 
     }
 });
 
-
-
-
-
 document.getElementById('simulated-speed').addEventListener('input', (event) => {
     simulatedSpeed = parseFloat(event.target.value);
     document.getElementById('simulated-speed-value').textContent = simulatedSpeed.toFixed(1);
@@ -64,14 +50,11 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
     }
 });
 
-
 document.getElementById('reset-data').addEventListener('click', () => {
     distanceTraveled = 0;
     updateDashboard(0, 0, 0, 0);
     stopSimulation();
 });
-
-
 
 // Simuleringsfunksjon
 function startSimulation() {
@@ -91,8 +74,6 @@ function startSimulation() {
     }, SIMULATION_UPDATE_INTERVAL);
 }
 
-
-
 function stopSimulation() {
     if (simulationInterval) {
         clearInterval(simulationInterval);
@@ -101,9 +82,6 @@ function stopSimulation() {
     simulatedSpeed = 0; // Nullstill simulert hastighet
     updateDashboard(0, distanceTraveled, 0, 0); // Oppdater dashbordet til 0 for hastighet og forbruk
 }
-
-
-
 
 // Oppdater kalibreringsdata fra tabellen
 function getCalibrationData() {
@@ -129,9 +107,9 @@ function getCalibrationData() {
         fuel: parseFloat(document.getElementById('wot-fuel').value),
       },
     };
-  }
+}
 
-  function calculateInterpolatedValues(speed) {
+function calculateInterpolatedValues(speed) {
     const data = getCalibrationData();
   
     // Enkel interpolering mellom punktene
@@ -152,13 +130,12 @@ function getCalibrationData() {
     }
   
     return { rpm, fuel };
-  }
+}
   
-  // Funksjon for lineær interpolering
-  function interpolate(x1, x2, y1, y2, x) {
+// Funksjon for lineær interpolering
+function interpolate(x1, x2, y1, y2, x) {
     return y1 + ((y2 - y1) * (x - x1)) / (x2 - x1);
-  }
-  
+}
 
 navigator.geolocation.watchPosition((position) => {
     if (isSimulationMode) return; // Ignorer GPS-data i simuleringsmodus
@@ -181,7 +158,6 @@ navigator.geolocation.watchPosition((position) => {
     updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
 });
 
-
 function calculateDistance(pos1, pos2) {
   const R = 6371; // Radius of Earth in km
   const dLat = ((pos2.latitude - pos1.latitude) * Math.PI) / 180;
@@ -195,12 +171,6 @@ function calculateDistance(pos1, pos2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
-
-document.getElementById('reset-data').addEventListener('click', () => {
-    stopSimulation();
-    distanceTraveled = 0;
-    updateDashboard(0, 0, 0, 0);
-});
 
 
 
