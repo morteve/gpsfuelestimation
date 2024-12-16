@@ -81,6 +81,9 @@ function startSimulation() {
             // Beregn interpolerte verdier
             const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
 
+            // Oppdater totalt drivstofforbruk
+            totalFuelConsumption += (interpolatedValues.fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
+
             // Oppdater dashboard med de nye verdiene
             updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
         }
