@@ -21,6 +21,11 @@
         <p>Tilbakelagt distanse: <span id="distance">0</span> <span id="distance-unit">nm</span></p>
         <p>Totalt drivstofforbruk: <span id="total-fuel-consumption">0</span> liter</p>
     </div>
+    <h2>Bensintank</h2>
+        <label for="fuel-tank-capacity">Kapasitet (liter):</label>
+        <input type="number" id="fuel-tank-capacity" value="100">
+        <button id="save-fuel-tank">Lagre</button>
+        <p>Gjenværende drivstoff: <span id="remaining-fuel">100</span> liter</p>
     <section>
         <h2>Simuleringsmodus</h2>
         <label for="simulation-toggle">Bruk simulert hastighet:</label>
@@ -70,11 +75,6 @@
           </div>
         </div>
         <button id="reset-data">Nullstill data</button>
-        <h2>Bensintank</h2>
-        <label for="fuel-tank-capacity">Kapasitet (liter):</label>
-        <input type="number" id="fuel-tank-capacity" value="100">
-        <button id="save-fuel-tank">Lagre</button>
-        <p>Gjenværende drivstoff: <span id="remaining-fuel">100</span> liter</p>
         <h2>Interpolert Forbruk</h2>
         <canvas id="fuelChart" width="400" height="200"></canvas>
         <button id="start-pause-measurement">Start Måling</button>
