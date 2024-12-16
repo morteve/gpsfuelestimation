@@ -25,7 +25,7 @@
         <h2>Simuleringsmodus</h2>
         <label for="simulation-toggle">Bruk simulert hastighet:</label>
         <input type="checkbox" id="simulation-toggle">
-        <div id="simulation-controls" style="display: none;">
+        <div id="simulation-controls">
           <label for="simulated-speed">Simulert hastighet (knots):</label>
           <input type="range" id="simulated-speed" min="0" max="50" value="0">
           <span id="simulated-speed-value">0</span> knots
@@ -64,7 +64,7 @@
             <label for="wot-rpm">RPM:</label>
             <input type="number" id="wot-rpm" value="5850">
             <label for="wot-speed">Speed (knots):</label>
-            <input type="number" id="wot-speed" value="21.06"> <!-- Konvertert fra 39 km/h til knots -->
+            <input type="number" id="wot-speed" value="39"> <!-- Konvertert fra 39 km/h til knots -->
             <label for="wot-fuel">Fuel (l/h):</label>
             <input type="number" id="wot-fuel" value="22.5">
           </div>

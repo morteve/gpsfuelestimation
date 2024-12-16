@@ -59,6 +59,10 @@ button:hover {
 
 /* Responsive styling */
 @media screen and (max-width: 768px) {
+    .dashboard, section {
+        margin: 10px;
+    }
+
     table th, table td {
         font-size: 12px;
         padding: 6px;
@@ -67,6 +71,19 @@ button:hover {
     button {
         font-size: 14px;
         padding: 8px 16px;
+    }
+
+    .calibration-block {
+        padding: 10px;
+    }
+
+    .calibration-block label {
+        font-size: 12px;
+    }
+
+    .calibration-block input {
+        font-size: 12px;
+        padding: 6px;
     }
 }
 
