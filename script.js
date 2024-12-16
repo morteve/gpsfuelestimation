@@ -88,22 +88,22 @@ function getCalibrationData() {
     return {
       idle: {
         rpm: parseFloat(document.getElementById('idle-rpm').value),
-        speed: parseFloat(document.getElementById('idle-speed').value) / 1.852, // Konverter km/h til knop
+        speed: parseFloat(document.getElementById('idle-speed').value), // Hastighet i knop
         fuel: parseFloat(document.getElementById('idle-fuel').value),
       },
       lowCruise: {
         rpm: parseFloat(document.getElementById('low-rpm').value),
-        speed: parseFloat(document.getElementById('low-speed').value) / 1.852, // Konverter km/h til knop
+        speed: parseFloat(document.getElementById('low-speed').value), // Hastighet i knop
         fuel: parseFloat(document.getElementById('low-fuel').value),
       },
       highCruise: {
         rpm: parseFloat(document.getElementById('high-rpm').value),
-        speed: parseFloat(document.getElementById('high-speed').value) / 1.852, // Konverter km/h til knop
+        speed: parseFloat(document.getElementById('high-speed').value), // Hastighet i knop
         fuel: parseFloat(document.getElementById('high-fuel').value),
       },
       wot: {
         rpm: parseFloat(document.getElementById('wot-rpm').value),
-        speed: parseFloat(document.getElementById('wot-speed').value) / 1.852, // Konverter km/h til knop
+        speed: parseFloat(document.getElementById('wot-speed').value), // Hastighet i knop
         fuel: parseFloat(document.getElementById('wot-fuel').value),
       },
     };
