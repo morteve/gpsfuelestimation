@@ -21,10 +21,6 @@ function updateDashboard(speed, distance, fuel, rpm) {
         ? (fuel / speedKnots).toFixed(2) // Beregn forbruk basert på hastighet
         : '0';
 
-    // Oppdater totalt drivstofforbruk
-    totalFuelConsumption += (fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
-    document.getElementById('total-fuel-consumption').textContent = totalFuelConsumption.toFixed(2);
-
     // Oppdater grafen med markør
     if (fuelChart) {
         fuelChart.options.plugins.marker.speed = speedKnots;
@@ -32,6 +28,11 @@ function updateDashboard(speed, distance, fuel, rpm) {
         fuelChart.options.plugins.marker.rpm = rpm;
         fuelChart.update();
     }
+}
+
+function updateTotalFuelConsumption(fuel) {
+    totalFuelConsumption += (fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
+    document.getElementById('total-fuel-consumption').textContent = totalFuelConsumption.toFixed(2);
 }
 
 // Toggle simulering
@@ -82,7 +83,7 @@ function startSimulation() {
             const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
 
             // Oppdater totalt drivstofforbruk
-            totalFuelConsumption += (interpolatedValues.fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
+            updateTotalFuelConsumption(interpolatedValues.fuel);
 
             // Oppdater dashboard med de nye verdiene
             updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
