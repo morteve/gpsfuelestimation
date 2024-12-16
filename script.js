@@ -1,4 +1,4 @@
-let speedUnit = 'km/h'; // Standard
+let speedUnit = 'knots'; // Standard
 let distanceTraveled = 0;
 let lastPosition = null;
 let isSimulationMode = false;
@@ -7,8 +7,8 @@ let simulationInterval = null; // Intervallet for simuleringsoppdatering
 const SIMULATION_UPDATE_INTERVAL = 1000; // Oppdater hver 1 sekund
 
 function updateDashboard(speed, distance, fuel, rpm) {
-    const speedKnots = speed / 1.852; // Konverter hastighet til knop
-    const distanceNm = distance / 1.852; // Konverter distanse til nautiske mil
+    const speedKnots = speed; // Hastighet er allerede i knop
+    const distanceNm = distance; // Distanse er allerede i nautiske mil
 
     document.getElementById('speed').textContent = speedKnots.toFixed(1);
     document.getElementById('distance').textContent = distanceNm.toFixed(2);
@@ -42,7 +42,7 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
 
     // Oppdater distanse og drivstoff umiddelbart
     if (isSimulationMode) {
-        const distanceStep = (simulatedSpeed * 1.852) / 3600; // Beregn ny distanse umiddelbart
+        const distanceStep = simulatedSpeed / 3600; // Beregn ny distanse umiddelbart (nm per sekund)
         distanceTraveled += distanceStep;
 
         const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
@@ -66,10 +66,10 @@ function startSimulation() {
             distanceTraveled += distanceStep;
 
             // Beregn interpolerte verdier
-            const interpolatedValues = calculateInterpolatedValues(simulatedSpeed * 1.852); // Konverter knop til km/h
+            const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
 
             // Oppdater dashboard med de nye verdiene
-            updateDashboard(simulatedSpeed * 1.852, distanceTraveled * 1.852, interpolatedValues.fuel, interpolatedValues.rpm); // Konverter tilbake til km/h for kalkulasjoner
+            updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
         }
     }, SIMULATION_UPDATE_INTERVAL);
 }
@@ -88,22 +88,22 @@ function getCalibrationData() {
     return {
       idle: {
         rpm: parseFloat(document.getElementById('idle-rpm').value),
-        speed: parseFloat(document.getElementById('idle-speed').value),
+        speed: parseFloat(document.getElementById('idle-speed').value) / 1.852, // Konverter km/h til knop
         fuel: parseFloat(document.getElementById('idle-fuel').value),
       },
       lowCruise: {
         rpm: parseFloat(document.getElementById('low-rpm').value),
-        speed: parseFloat(document.getElementById('low-speed').value),
+        speed: parseFloat(document.getElementById('low-speed').value) / 1.852, // Konverter km/h til knop
         fuel: parseFloat(document.getElementById('low-fuel').value),
       },
       highCruise: {
         rpm: parseFloat(document.getElementById('high-rpm').value),
-        speed: parseFloat(document.getElementById('high-speed').value),
+        speed: parseFloat(document.getElementById('high-speed').value) / 1.852, // Konverter km/h til knop
         fuel: parseFloat(document.getElementById('high-fuel').value),
       },
       wot: {
         rpm: parseFloat(document.getElementById('wot-rpm').value),
-        speed: parseFloat(document.getElementById('wot-speed').value),
+        speed: parseFloat(document.getElementById('wot-speed').value) / 1.852, // Konverter km/h til knop
         fuel: parseFloat(document.getElementById('wot-fuel').value),
       },
     };
@@ -169,7 +169,7 @@ function calculateDistance(pos1, pos2) {
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  return R * c / 1.852; // Konverter km til nautiske mil
 }
 
 // Generate data for fuel consumption chart
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 x: {
                     title: {
                         display: true,
-                        text: 'Speed (km/h)'
+                        text: 'Speed (knots)'
                     }
                 },
                 y1: {
@@ -258,6 +258,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
 
 
 
