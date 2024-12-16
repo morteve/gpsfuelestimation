@@ -9,6 +9,8 @@ let simulationInterval = null; // Intervallet for simuleringsoppdatering
 const SIMULATION_UPDATE_INTERVAL = 1000; // Oppdater hver 1 sekund
 let fuelChart; // Definer globalt
 let isMeasurementActive = false;
+let fuelTankCapacity = 100;
+let remainingFuel = 100;
 
 function updateDashboard(speed, distance, fuel, rpm) {
     const speedKnots = speed; // Hastighet er allerede i knop
@@ -33,7 +35,9 @@ function updateDashboard(speed, distance, fuel, rpm) {
 
 function updateTotalFuelConsumption(fuel) {
     totalFuelConsumption += (fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
+    remainingFuel = fuelTankCapacity - totalFuelConsumption;
     document.getElementById('total-fuel-consumption').textContent = totalFuelConsumption.toFixed(2);
+    document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
 }
 
 // Toggle simulering
@@ -71,23 +75,45 @@ document.getElementById('reset-data').addEventListener('click', () => {
     stopSimulation();
 });
 
-document.getElementById('start-measurement').addEventListener('click', () => {
-    isMeasurementActive = true;
-    console.log('Measurement started');
-});
+document.getElementById('start-pause-measurement').addEventListener('click', (event) => {
+    isMeasurementActive = !isMeasurementActive;
+    event.target.textContent = isMeasurementActive ? 'Pause Måling' : 'Start Måling';
+    console.log(isMeasurementActive ? 'Measurement started' : 'Measurement paused');
 
-document.getElementById('pause-measurement').addEventListener('click', () => {
-    isMeasurementActive = false;
-    console.log('Measurement paused');
+    if (isMeasurementActive) {
+        startMeasurement();
+    } else {
+        pauseMeasurement();
+    }
 });
 
 document.getElementById('stop-measurement').addEventListener('click', () => {
     isMeasurementActive = false;
     distanceTraveled = 0;
     totalFuelConsumption = 0;
+    remainingFuel = fuelTankCapacity;
     updateDashboard(0, 0, 0, 0);
+    document.getElementById('start-pause-measurement').textContent = 'Start Måling';
+    document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
     console.log('Measurement stopped');
 });
+
+document.getElementById('save-fuel-tank').addEventListener('click', () => {
+    fuelTankCapacity = parseFloat(document.getElementById('fuel-tank-capacity').value);
+    remainingFuel = fuelTankCapacity - totalFuelConsumption;
+    document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
+    console.log(`Fuel tank capacity set to ${fuelTankCapacity} liters`);
+});
+
+function startMeasurement() {
+    console.log('Measurement started');
+    // Additional logic to start measurement if needed
+}
+
+function pauseMeasurement() {
+    console.log('Measurement paused');
+    // Additional logic to pause measurement if needed
+}
 
 // Simuleringsfunksjon
 function startSimulation() {
