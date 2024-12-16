@@ -17,6 +17,14 @@ function updateDashboard(speed, distance, fuel, rpm) {
     document.getElementById('fuel-per-nm').textContent = speedKnots > 0
         ? (fuel / speedKnots).toFixed(2) // Beregn forbruk basert på hastighet
         : '0';
+
+    // Oppdater grafen med markør
+    if (fuelChart) {
+        fuelChart.options.plugins.marker.speed = speedKnots;
+        fuelChart.options.plugins.marker.fuel = fuel;
+        fuelChart.options.plugins.marker.rpm = rpm;
+        fuelChart.update();
+    }
 }
 
 // Toggle simulering
@@ -196,6 +204,46 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const ctx = document.getElementById('fuelChart').getContext('2d');
     const { speedRange, fuelConsumption, rpmValues } = generateFuelConsumptionData();
 
+    const markerPlugin = {
+        id: 'marker',
+        beforeDraw: (chart) => {
+            const { ctx, chartArea: { left, right, top, bottom }, scales: { x, y1, y2 } } = chart;
+            const speed = chart.options.plugins.marker.speed;
+            const fuel = chart.options.plugins.marker.fuel;
+            const rpm = chart.options.plugins.marker.rpm;
+
+            if (speed !== undefined && fuel !== undefined && rpm !== undefined) {
+                const xPos = x.getPixelForValue(speed);
+                const yPosFuel = y1.getPixelForValue(fuel);
+                const yPosRpm = y2.getPixelForValue(rpm);
+
+                ctx.save();
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 1;
+
+                // Draw vertical line at speed
+                ctx.beginPath();
+                ctx.moveTo(xPos, top);
+                ctx.lineTo(xPos, bottom);
+                ctx.stroke();
+
+                // Draw horizontal line for fuel
+                ctx.beginPath();
+                ctx.moveTo(left, yPosFuel);
+                ctx.lineTo(xPos, yPosFuel);
+                ctx.stroke();
+
+                // Draw horizontal line for rpm
+                ctx.beginPath();
+                ctx.moveTo(left, yPosRpm);
+                ctx.lineTo(xPos, yPosRpm);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+    };
+
     const fuelChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -220,6 +268,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
             ]
         },
         options: {
+            plugins: {
+                marker: {
+                    speed: undefined,
+                    fuel: undefined,
+                    rpm: undefined
+                }
+            },
             scales: {
                 x: {
                     title: {
@@ -247,7 +302,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     }
                 }
             }
-        }
+        },
+        plugins: [markerPlugin]
     });
 
     // Update chart when calibration data changes
@@ -261,8 +317,3 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
-
-
-
-
-
