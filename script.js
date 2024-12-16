@@ -244,8 +244,10 @@ function calculateInterpolatedValues(speed) {
       rpm = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.rpm, data.wot.rpm, speed);
       fuel = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.fuel, data.wot.fuel, speed);
     } else {
-      rpm = data.wot.rpm;
-      fuel = data.wot.fuel;
+      // Fortsett interpolering forbi høyeste verdi
+      const extraSpeed = speed - data.wot.speed;
+      rpm = data.wot.rpm + (extraSpeed * (data.wot.rpm - data.highCruise.rpm) / (data.wot.speed - data.highCruise.speed));
+      fuel = data.wot.fuel + (extraSpeed * (data.wot.fuel - data.highCruise.fuel) / (data.wot.speed - data.highCruise.speed));
     }
   
     return { rpm, fuel };
@@ -316,7 +318,7 @@ function generateFuelConsumptionData() {
     const fuelConsumption = [];
     const rpmValues = [];
 
-    for (let speed = 0; speed <= data.wot.speed; speed += 1) {
+    for (let speed = 0; speed <= data.wot.speed + 10; speed += 1) { // Extend range beyond wot.speed
         const interpolatedValues = calculateInterpolatedValues(speed);
         speedRange.push(speed);
         fuelConsumption.push(interpolatedValues.fuel);
