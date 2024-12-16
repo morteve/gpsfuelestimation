@@ -172,6 +172,66 @@ function calculateDistance(pos1, pos2) {
   return R * c;
 }
 
+// Generate data for fuel consumption chart
+function generateFuelConsumptionData() {
+    const data = getCalibrationData();
+    const speedRange = [];
+    const fuelConsumption = [];
+
+    for (let speed = 0; speed <= data.wot.speed; speed += 1) {
+        const interpolatedValues = calculateInterpolatedValues(speed);
+        speedRange.push(speed);
+        fuelConsumption.push(interpolatedValues.fuel);
+    }
+
+    return { speedRange, fuelConsumption };
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    const ctx = document.getElementById('fuelChart').getContext('2d');
+    const { speedRange, fuelConsumption } = generateFuelConsumptionData();
+
+    const fuelChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: speedRange,
+            datasets: [{
+                label: 'Fuel Consumption (l/h)',
+                data: fuelConsumption,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: false
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Speed (km/h)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Fuel Consumption (l/h)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Update chart when calibration data changes
+    document.querySelectorAll('.calibration-block input').forEach(input => {
+        input.addEventListener('input', () => {
+            const { speedRange, fuelConsumption } = generateFuelConsumptionData();
+            fuelChart.data.labels = speedRange;
+            fuelChart.data.datasets[0].data = fuelConsumption;
+            fuelChart.update();
+        });
+    });
+});
+
 
 
 
