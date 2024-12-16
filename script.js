@@ -124,9 +124,12 @@ function calculateInterpolatedValues(speed) {
     } else if (speed <= data.highCruise.speed) {
       rpm = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.rpm, data.highCruise.rpm, speed);
       fuel = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.fuel, data.highCruise.fuel, speed);
-    } else {
+    } else if (speed <= data.wot.speed) {
       rpm = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.rpm, data.wot.rpm, speed);
       fuel = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.fuel, data.wot.fuel, speed);
+    } else {
+      rpm = data.wot.rpm;
+      fuel = data.wot.fuel;
     }
   
     return { rpm, fuel };
