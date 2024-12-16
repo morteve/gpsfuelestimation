@@ -1,5 +1,6 @@
 let speedUnit = 'knots'; // Standard
 let distanceTraveled = 0;
+let totalFuelConsumption = 0; // Totalt drivstofforbruk
 let lastPosition = null;
 let lastTimestamp = null;
 let isSimulationMode = false;
@@ -19,6 +20,10 @@ function updateDashboard(speed, distance, fuel, rpm) {
     document.getElementById('fuel-per-nm').textContent = speedKnots > 0
         ? (fuel / speedKnots).toFixed(2) // Beregn forbruk basert på hastighet
         : '0';
+
+    // Oppdater totalt drivstofforbruk
+    totalFuelConsumption += (fuel / 3600); // Legg til forbruk per sekund
+    document.getElementById('total-fuel-consumption').textContent = totalFuelConsumption.toFixed(2);
 
     // Oppdater grafen med markør
     if (fuelChart) {
@@ -62,6 +67,7 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
 
 document.getElementById('reset-data').addEventListener('click', () => {
     distanceTraveled = 0;
+    totalFuelConsumption = 0; // Nullstill totalt drivstofforbruk
     updateDashboard(0, 0, 0, 0);
     stopSimulation();
 });
