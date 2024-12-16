@@ -15,6 +15,8 @@ let remainingFuel = 100;
 let maxSpeed = 0;
 let speedBuffer = [];
 const MAX_SPEED_DISTANCE = 0.25; // 1/4 nm
+let stopwatchInterval = null;
+let stopwatchTime = 0;
 
 /**
  * Updates the dashboard with the current speed, distance, fuel consumption, and RPM.
@@ -119,6 +121,7 @@ document.getElementById('reset-data').addEventListener('click', () => {
     document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
     document.getElementById('max-speed').textContent = maxSpeed.toFixed(2);
     stopSimulation();
+    resetStopwatch(); // Nullstill stoppeklokke
 });
 
 document.getElementById('start-pause-measurement').addEventListener('click', (event) => {
@@ -128,8 +131,10 @@ document.getElementById('start-pause-measurement').addEventListener('click', (ev
 
     if (isMeasurementActive) {
         startMeasurement();
+        startStopwatch(); // Start stoppeklokke
     } else {
         pauseMeasurement();
+        pauseStopwatch(); // Pause stoppeklokke
     }
 });
 
@@ -521,3 +526,43 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
+/**
+ * Updates the stopwatch display.
+ */
+function updateStopwatch() {
+    const hours = Math.floor(stopwatchTime / 3600);
+    const minutes = Math.floor((stopwatchTime % 3600) / 60);
+    const seconds = stopwatchTime % 60;
+
+    document.getElementById('stopwatch').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Starts the stopwatch.
+ */
+function startStopwatch() {
+    if (stopwatchInterval) return; // Prevent multiple intervals
+    stopwatchInterval = setInterval(() => {
+        stopwatchTime++;
+        updateStopwatch();
+    }, 1000);
+}
+
+/**
+ * Pauses the stopwatch.
+ */
+function pauseStopwatch() {
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = null;
+}
+
+/**
+ * Resets the stopwatch.
+ */
+function resetStopwatch() {
+    pauseStopwatch();
+    stopwatchTime = 0;
+    updateStopwatch();
+}
