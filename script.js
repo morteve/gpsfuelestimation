@@ -55,11 +55,8 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
     simulatedSpeed = parseFloat(event.target.value);
     document.getElementById('simulated-speed-value').textContent = simulatedSpeed.toFixed(1);
 
-    // Oppdater distanse og drivstoff umiddelbart
+    // Oppdater dashboard umiddelbart uten å endre distanse og drivstoff
     if (isSimulationMode) {
-        const distanceStep = simulatedSpeed / 3600; // Beregn ny distanse umiddelbart (nm per sekund)
-        distanceTraveled += distanceStep;
-
         const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
         updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
     }
