@@ -119,7 +119,7 @@ function pauseMeasurement() {
 function startSimulation() {
     stopSimulation(); // Stopp eventuell eksisterende simulering
     simulationInterval = setInterval(() => {
-        if (isSimulationMode) {
+        if (isSimulationMode && isMeasurementActive) {
             // Beregn distanse basert på simulert hastighet
             const distanceStep = simulatedSpeed * (SIMULATION_UPDATE_INTERVAL / 3600000); // nm per oppdateringsintervall
             distanceTraveled += distanceStep;
