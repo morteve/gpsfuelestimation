@@ -1,3 +1,4 @@
+// Global variables
 let speedUnit = 'knots'; // Standard
 let distanceTraveled = 0;
 let totalFuelConsumption = 0; // Totalt drivstofforbruk
@@ -11,7 +12,17 @@ let fuelChart; // Definer globalt
 let isMeasurementActive = false;
 let fuelTankCapacity = 100;
 let remainingFuel = 100;
+let maxSpeed = 0;
+let speedBuffer = [];
+const MAX_SPEED_DISTANCE = 0.25; // 1/4 nm
 
+/**
+ * Updates the dashboard with the current speed, distance, fuel consumption, and RPM.
+ * @param {number} speed - The current speed in knots.
+ * @param {number} distance - The total distance traveled in nautical miles.
+ * @param {number} fuel - The current fuel consumption in liters per hour.
+ * @param {number} rpm - The current RPM.
+ */
 function updateDashboard(speed, distance, fuel, rpm) {
     const speedKnots = speed; // Hastighet er allerede i knop
     const distanceNm = distance; // Distanse er allerede i nautiske mil
@@ -31,8 +42,38 @@ function updateDashboard(speed, distance, fuel, rpm) {
         fuelChart.options.plugins.marker.rpm = rpm;
         fuelChart.update();
     }
+
+    // Oppdater max hastighet
+    updateMaxSpeed(speedKnots, distance);
 }
 
+/**
+ * Updates the maximum speed based on the highest average speed measured over 0.25 nm.
+ * @param {number} currentSpeed - The current speed in knots.
+ * @param {number} distance - The distance traveled in the current interval.
+ */
+function updateMaxSpeed(currentSpeed, distance) {
+    speedBuffer.push({ speed: currentSpeed, distance: distance });
+    let totalDistance = speedBuffer.reduce((acc, val) => acc + val.distance, 0);
+
+    // Fjern hastigheter som er eldre enn 1/4 nm
+    while (totalDistance > MAX_SPEED_DISTANCE) {
+        const removed = speedBuffer.shift();
+        totalDistance -= removed.distance;
+    }
+
+    const totalSpeed = speedBuffer.reduce((acc, val) => acc + val.speed * val.distance, 0);
+    const averageSpeed = totalSpeed / totalDistance;
+    if (averageSpeed > maxSpeed) {
+        maxSpeed = averageSpeed;
+        document.getElementById('max-speed').textContent = maxSpeed.toFixed(2);
+    }
+}
+
+/**
+ * Updates the total fuel consumption.
+ * @param {number} fuel - The current fuel consumption in liters per hour.
+ */
 function updateTotalFuelConsumption(fuel) {
     totalFuelConsumption += (fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
     remainingFuel = fuelTankCapacity - totalFuelConsumption;
@@ -71,7 +112,12 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
 document.getElementById('reset-data').addEventListener('click', () => {
     distanceTraveled = 0;
     totalFuelConsumption = 0; // Nullstill totalt drivstofforbruk
+    remainingFuel = fuelTankCapacity; // Nullstill gjenværende drivstoff
+    maxSpeed = 0; // Nullstill max hastighet
+    speedBuffer = []; // Nullstill hastighetsbuffer
     updateDashboard(0, 0, 0, 0);
+    document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
+    document.getElementById('max-speed').textContent = maxSpeed.toFixed(2);
     stopSimulation();
 });
 
@@ -123,6 +169,9 @@ function pauseMeasurement() {
     }
 }
 
+/**
+ * Starts GPS measurement and updates the dashboard with the current data.
+ */
 function startGPSMeasurement() {
     navigator.geolocation.watchPosition((position) => {
         if (!isMeasurementActive) return; // Ignorer GPS-data hvis måling er inaktiv
@@ -150,7 +199,8 @@ function startGPSMeasurement() {
 
         if (lastTimestamp) {
             const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
-            distanceTraveled += speed * timeElapsed; // nm
+            const distanceStep = speed * timeElapsed; // nm
+            distanceTraveled += distanceStep; // nm
         }
 
         lastPosition = {
@@ -199,7 +249,10 @@ function stopSimulation() {
     updateDashboard(0, distanceTraveled, 0, 0); // Oppdater dashbordet til 0 for hastighet og forbruk
 }
 
-// Oppdater kalibreringsdata fra tabellen
+/**
+ * Retrieves calibration data from the input fields.
+ * @returns {Object} The calibration data.
+ */
 function getCalibrationData() {
     return {
       idle: {
@@ -225,6 +278,11 @@ function getCalibrationData() {
     };
 }
 
+/**
+ * Calculates interpolated values for RPM and fuel consumption based on the current speed.
+ * @param {number} speed - The current speed in knots.
+ * @returns {Object} The interpolated RPM and fuel consumption.
+ */
 function calculateInterpolatedValues(speed) {
     const data = getCalibrationData();
   
@@ -253,7 +311,15 @@ function calculateInterpolatedValues(speed) {
     return { rpm, fuel };
 }
   
-// Funksjon for lineær interpolering
+/**
+ * Performs linear interpolation between two points.
+ * @param {number} x1 - The x-coordinate of the first point.
+ * @param {number} x2 - The x-coordinate of the second point.
+ * @param {number} y1 - The y-coordinate of the first point.
+ * @param {number} y2 - The y-coordinate of the second point.
+ * @param {number} x - The x-coordinate of the point to interpolate.
+ * @returns {number} The interpolated y-coordinate.
+ */
 function interpolate(x1, x2, y1, y2, x) {
     return y1 + ((y2 - y1) * (x - x1)) / (x2 - x1);
 }
@@ -284,7 +350,8 @@ navigator.geolocation.watchPosition((position) => {
 
     if (lastTimestamp) {
         const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
-        distanceTraveled += speed * timeElapsed; // nm
+        const distanceStep = speed * timeElapsed; // nm
+        distanceTraveled += distanceStep; // nm
     }
 
     lastPosition = {
@@ -297,6 +364,12 @@ navigator.geolocation.watchPosition((position) => {
     updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
 });
 
+/**
+ * Calculates the distance between two geographical points.
+ * @param {Object} pos1 - The first geographical point.
+ * @param {Object} pos2 - The second geographical point.
+ * @returns {number} The distance between the two points in nautical miles.
+ */
 function calculateDistance(pos1, pos2) {
   const R = 6371; // Radius of Earth in km
   const dLat = ((pos2.latitude - pos1.latitude) * Math.PI) / 180;
@@ -311,7 +384,10 @@ function calculateDistance(pos1, pos2) {
   return R * c / 1.852; // Konverter km til nautiske mil
 }
 
-// Generate data for fuel consumption chart
+/**
+ * Generates data for the fuel consumption chart.
+ * @returns {Object} The data for the fuel consumption chart.
+ */
 function generateFuelConsumptionData() {
     const data = getCalibrationData();
     const speedRange = [];
