@@ -5,6 +5,7 @@ let isSimulationMode = false;
 let simulatedSpeed = 0;
 let simulationInterval = null; // Intervallet for simuleringsoppdatering
 const SIMULATION_UPDATE_INTERVAL = 1000; // Oppdater hver 1 sekund
+let fuelChart; // Definer globalt
 
 function updateDashboard(speed, distance, fuel, rpm) {
     const speedKnots = speed; // Hastighet er allerede i knop
@@ -244,7 +245,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
     };
 
-    const fuelChart = new Chart(ctx, {
+    fuelChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: speedRange,
