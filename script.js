@@ -170,6 +170,17 @@ navigator.geolocation.watchPosition((position) => {
         speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
     }
 
+    // Filter out unrealistic speed changes
+    if (lastPosition && lastTimestamp) {
+        const maxSpeedChange = 10; // Max change in knots per second
+        const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
+        const speedChange = Math.abs(speed - (distanceTraveled / timeElapsed));
+        if (speedChange > maxSpeedChange) {
+            console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
+            return;
+        }
+    }
+
     if (lastTimestamp) {
         const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
         distanceTraveled += speed * timeElapsed; // nm
