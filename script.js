@@ -22,7 +22,7 @@ function updateDashboard(speed, distance, fuel, rpm) {
         : '0';
 
     // Oppdater totalt drivstofforbruk
-    totalFuelConsumption += (fuel / 3600); // Legg til forbruk per sekund
+    totalFuelConsumption += (fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
     document.getElementById('total-fuel-consumption').textContent = totalFuelConsumption.toFixed(2);
 
     // Oppdater grafen med markør
@@ -78,7 +78,7 @@ function startSimulation() {
     simulationInterval = setInterval(() => {
         if (isSimulationMode) {
             // Beregn distanse basert på simulert hastighet
-            const distanceStep = simulatedSpeed / 3600; // nm per sekund
+            const distanceStep = simulatedSpeed * (SIMULATION_UPDATE_INTERVAL / 3600000); // nm per oppdateringsintervall
             distanceTraveled += distanceStep;
 
             // Beregn interpolerte verdier
@@ -169,12 +169,9 @@ navigator.geolocation.watchPosition((position) => {
         speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
     }
 
-    if (lastPosition) {
-        const distance = calculateDistance(lastPosition, {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-        });
-        distanceTraveled += distance;
+    if (lastTimestamp) {
+        const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
+        distanceTraveled += speed * timeElapsed; // nm
     }
 
     lastPosition = {
