@@ -123,63 +123,63 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
 });
 
 // Disable GPS data when simulation mode is active
-navigator.geolocation.watchPosition((position) => {
-    if (!isMeasurementActive || isSimulationMode) return;
-    let speed = position.coords.speed || 0;
-    if (speed === 0 && lastPosition && lastTimestamp) {
-        const distance = calculateDistance(lastPosition, {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-        });
-        const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
-        speed = (distance / timeElapsed) * 3600 / 1.852;
-    }
+// navigator.geolocation.watchPosition((position) => {
+//     if (!isMeasurementActive || isSimulationMode) return;
+//     let speed = position.coords.speed || 0;
+//     if (speed === 0 && lastPosition && lastTimestamp) {
+//         const distance = calculateDistance(lastPosition, {
+//             latitude: position.coords.latitude,
+//             longitude: position.coords.longitude,
+//         });
+//         const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
+//         speed = (distance / timeElapsed) * 3600 / 1.852;
+//     }
 
-    if (!isSimulationMode && lastPosition && lastTimestamp) {
-        const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
-        const currentSpeed = distanceTraveled / timeElapsed;
+//     if (!isSimulationMode && lastPosition && lastTimestamp) {
+//         const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
+//         const currentSpeed = distanceTraveled / timeElapsed;
 
-        const filteredSpeed = kalmanFilter(currentSpeed);
-        const speedChange = Math.abs(speed - filteredSpeed);
+//         const filteredSpeed = kalmanFilter(currentSpeed);
+//         const speedChange = Math.abs(speed - filteredSpeed);
 
-        const maxSpeedChange = 10;
-        if (speedChange > maxSpeedChange) {
-            console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
-            return;
-        }
-        speed = filteredSpeed;
-    }
+//         const maxSpeedChange = 10;
+//         if (speedChange > maxSpeedChange) {
+//             console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
+//             return;
+//         }
+//         speed = filteredSpeed;
+//     }
 
-    if (lastTimestamp) {
-        const timeElapsed = (position.timestamp - lastTimestamp) / 3600000;
-        const distanceStep = speed * timeElapsed;
-        distanceTraveled += distanceStep;
-        updateMaxSpeed(speed, distanceStep);
-    }
+//     if (lastTimestamp) {
+//         const timeElapsed = (position.timestamp - lastTimestamp) / 3600000;
+//         const distanceStep = speed * timeElapsed;
+//         distanceTraveled += distanceStep;
+//         updateMaxSpeed(speed, distanceStep);
+//     }
 
-    lastPosition = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-    };
-    lastTimestamp = position.timestamp;
+//     lastPosition = {
+//         latitude: position.coords.latitude,
+//         longitude: position.coords.longitude,
+//     };
+//     lastTimestamp = position.timestamp;
 
-    const interpolatedValues = calculateInterpolatedValues(speed);
-    updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+//     const interpolatedValues = calculateInterpolatedValues(speed);
+//     updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
 
-    if (isMeasurementActive) {
-        updateTotalFuelConsumption(interpolatedValues.fuel);
-    }
-}, (error) => {
-    if (error.code === error.PERMISSION_DENIED) {
-        alert('Please enable location services to use this feature.');
-    } else {
-        console.error('Error occurred while retrieving location:', error);
-    }
-}, {
-    enableHighAccuracy: true,
-    maximumAge: 0,
-    timeout: Infinity
-});
+//     if (isMeasurementActive) {
+//         updateTotalFuelConsumption(interpolatedValues.fuel);
+//     }
+// }, (error) => {
+//     if (error.code === error.PERMISSION_DENIED) {
+//         alert('Please enable location services to use this feature.');
+//     } else {
+//         console.error('Error occurred while retrieving location:', error);
+//     }
+// }, {
+//     enableHighAccuracy: true,
+//     maximumAge: 0,
+//     timeout: Infinity
+// });
 
 document.getElementById('reset-data').addEventListener('click', () => {
     distanceTraveled = 0;
@@ -191,21 +191,21 @@ document.getElementById('reset-data').addEventListener('click', () => {
     document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
     document.getElementById('max-speed').textContent = maxSpeed.toFixed(2);
     stopSimulation();
-    resetStopwatch();
+    resetStopwatch(); // Reset the stopwatch
 });
 
 document.getElementById('start-pause-measurement').addEventListener('click', (event) => {
-    if (isMeasurementActive) {
-        pauseMeasurement();
-        pauseStopwatch();
-        event.target.textContent = 'Start';
-    } else {
-        startMeasurement();
-        startStopwatch();
-        event.target.textContent = 'Pause';
-    }
     isMeasurementActive = !isMeasurementActive;
+    event.target.textContent = isMeasurementActive ? 'Pause' : 'Start';
     console.log(isMeasurementActive ? 'Measurement started' : 'Measurement paused');
+
+    if (isMeasurementActive) {
+        startMeasurement();
+        startStopwatch(); // Start the stopwatch
+    } else {
+        pauseMeasurement();
+        pauseStopwatch(); // Pause the stopwatch
+    }
 });
 
 document.getElementById('stop-measurement').addEventListener('click', () => {
@@ -231,7 +231,7 @@ function startMeasurement() {
     if (isSimulationMode) {
         startSimulation();
     } else {
-        startGPSMeasurement(); // Ensure GPS measurement starts
+        startGPSMeasurement(); // Start GPS measurement
     }
 }
 
@@ -239,6 +239,8 @@ function pauseMeasurement() {
     console.log('Measurement paused');
     if (isSimulationMode) {
         stopSimulation();
+    } else {
+        stopGPSMeasurement(); // Stop GPS measurement
     }
 }
 
@@ -663,29 +665,13 @@ function resetStopwatch() {
  * @returns {number} The filtered speed.
  */
 function kalmanFilter(measuredSpeed) {
-    // Prediction update
     kalmanError += processNoise;
 
-    // Measurement update
     const kalmanGain = kalmanError / (kalmanError + measurementNoise);
     kalmanSpeed += kalmanGain * (measuredSpeed - kalmanSpeed);
     kalmanError *= (1 - kalmanGain);
 
-    console.log(`Measured Speed: ${measuredSpeed}, Kalman Speed: ${kalmanSpeed}`); // Logging
-
     return kalmanSpeed;
 }
-// Filter out unrealistic speed changes using Kalman filter
-if (lastPosition && lastTimestamp) {
-    const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
-    const currentSpeed = distanceTraveled / timeElapsed;
 
-    const filteredSpeed = kalmanFilter(currentSpeed);
-    const speedChange = Math.abs(speed - filteredSpeed);
-
-    const maxSpeedChange = 10; // Max change in knots per second
-    if (speedChange > maxSpeedChange) {
-        console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
-        return;
-    }
-}
+//test
