@@ -330,8 +330,6 @@ function interpolate(x1, x2, y1, y2, x) {
 }
 
 navigator.geolocation.watchPosition((position) => {
-    if (isSimulationMode || !isMeasurementActive) return; // Ignorer GPS-data i simuleringsmodus eller hvis måling er inaktiv
-
     let speed = position.coords.speed || 0;
     if (speed === 0 && lastPosition && lastTimestamp) {
         const distance = calculateDistance(lastPosition, {
@@ -367,6 +365,10 @@ navigator.geolocation.watchPosition((position) => {
 
     const interpolatedValues = calculateInterpolatedValues(speed);
     updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+
+    if (isMeasurementActive) {
+        updateTotalFuelConsumption(interpolatedValues.fuel);
+    }
 });
 
 /**
