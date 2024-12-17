@@ -52,10 +52,10 @@ function updateDashboard(speed, distance, fuel, rpm) {
 /**
  * Updates the maximum speed based on the highest average speed measured over 0.25 nm.
  * @param {number} currentSpeed - The current speed in knots.
- * @param {number} distance - The distance traveled in the current interval.
+ * @param {number} distanceStep - The distance traveled in the current interval.
  */
-function updateMaxSpeed(currentSpeed, distance) {
-    speedBuffer.push({ speed: currentSpeed, distance: distance });
+function updateMaxSpeed(currentSpeed, distanceStep) {
+    speedBuffer.push({ speed: currentSpeed, distance: distanceStep });
     let totalDistance = speedBuffer.reduce((acc, val) => acc + val.distance, 0);
 
     // Fjern hastigheter som er eldre enn 1/4 nm
@@ -206,6 +206,7 @@ function startGPSMeasurement() {
             const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
             const distanceStep = speed * timeElapsed; // nm
             distanceTraveled += distanceStep; // nm
+            updateMaxSpeed(speed, distanceStep); // Oppdater max hastighet kontinuerlig
         }
 
         lastPosition = {
@@ -355,6 +356,7 @@ navigator.geolocation.watchPosition((position) => {
         const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
         const distanceStep = speed * timeElapsed; // nm
         distanceTraveled += distanceStep; // nm
+        updateMaxSpeed(speed, distanceStep); // Oppdater max hastighet kontinuerlig
     }
 
     lastPosition = {
