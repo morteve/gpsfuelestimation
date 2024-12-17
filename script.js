@@ -213,7 +213,7 @@ function startGPSMeasurement() {
         }
 
         // Filter out unrealistic speed changes using Kalman filter
-        if (lastPosition && lastTimestamp) {
+        if (!isSimulationMode && lastPosition && lastTimestamp) {
             const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
             const currentSpeed = distanceTraveled / timeElapsed;
 
@@ -222,8 +222,8 @@ function startGPSMeasurement() {
 
             const maxSpeedChange = 10; // Max change in knots per second
             if (speedChange > maxSpeedChange) {
-                console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
-                return;
+            console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
+            return;
             }
         }
 
@@ -381,7 +381,7 @@ navigator.geolocation.watchPosition((position) => {
     }
 
     // Filter out unrealistic speed changes using Kalman filter
-    if (lastPosition && lastTimestamp) {
+    if (!isSimulationMode && lastPosition && lastTimestamp) {
         const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
         const currentSpeed = distanceTraveled / timeElapsed;
 
@@ -414,6 +414,16 @@ navigator.geolocation.watchPosition((position) => {
     if (isMeasurementActive) {
         updateTotalFuelConsumption(interpolatedValues.fuel);
     }
+}, (error) => {
+    if (error.code === error.PERMISSION_DENIED) {
+        alert('Please enable location services to use this feature.');
+    } else {
+        console.error('Error occurred while retrieving location:', error);
+    }
+}, {
+    enableHighAccuracy: true,
+    maximumAge: 0,
+    timeout: Infinity
 });
 
 /**
