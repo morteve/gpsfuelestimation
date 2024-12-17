@@ -239,6 +239,10 @@ function startGPSMeasurement() {
         } else {
             console.error('Error occurred while retrieving location:', error);
         }
+    }, {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: Infinity
     });
 }
 
@@ -311,6 +315,9 @@ function getCalibrationData() {
  * @returns {Object} The interpolated RPM and fuel consumption.
  */
 function calculateInterpolatedValues(speed) {
+    if (speed < 0) {
+        speed = 0; // Handle negative speed by setting it to 0
+    }
     const data = getCalibrationData();
   
     // Enkel interpolering mellom punktene
