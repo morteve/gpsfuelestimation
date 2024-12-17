@@ -138,7 +138,7 @@ document.getElementById('reset-data').addEventListener('click', () => {
 
 document.getElementById('start-pause-measurement').addEventListener('click', (event) => {
     isMeasurementActive = !isMeasurementActive;
-    event.target.textContent = isMeasurementActive ? 'Pause Måling' : 'Start Måling';
+    event.target.textContent = isMeasurementActive ? 'Pause' : 'Start';
     console.log(isMeasurementActive ? 'Measurement started' : 'Measurement paused');
 
     if (isMeasurementActive) {
@@ -156,7 +156,7 @@ document.getElementById('stop-measurement').addEventListener('click', () => {
     totalFuelConsumption = 0;
     remainingFuel = fuelTankCapacity;
     updateDashboard(0, 0, 0, 0);
-    document.getElementById('start-pause-measurement').textContent = 'Start Måling';
+    document.getElementById('start-pause-measurement').textContent = 'Start';
     document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
     console.log('Measurement stopped');
 });
