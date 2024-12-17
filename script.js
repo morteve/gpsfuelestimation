@@ -69,7 +69,15 @@ function updateMaxSpeed(currentSpeed, distanceStep) {
         totalDistance -= removed.distance;
     }
 
-    checkAndUpdateMaxSpeed();
+    // Ensure the latest distance is used for max speed calculation
+    if (totalDistance > 0) {
+        const totalSpeed = speedBuffer.reduce((acc, val) => acc + val.speed * val.distance, 0);
+        const averageSpeed = totalSpeed / totalDistance;
+        if (averageSpeed > maxSpeed) {
+            maxSpeed = Math.floor(averageSpeed);
+            document.getElementById('max-speed').textContent = maxSpeed;
+        }
+    }
 }
 
 /**
