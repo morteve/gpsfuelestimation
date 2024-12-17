@@ -239,6 +239,8 @@ function startMeasurement() {
     console.log('Measurement started');
     if (isSimulationMode) {
         startSimulation();
+    } else {
+        startGPSMeasurement(); // Ensure GPS measurement starts
     }
 }
 
