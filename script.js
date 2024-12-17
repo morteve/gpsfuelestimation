@@ -195,17 +195,17 @@ document.getElementById('reset-data').addEventListener('click', () => {
 });
 
 document.getElementById('start-pause-measurement').addEventListener('click', (event) => {
-    isMeasurementActive = !isMeasurementActive;
-    event.target.textContent = isMeasurementActive ? 'Pause' : 'Start';
-    console.log(isMeasurementActive ? 'Measurement started' : 'Measurement paused');
-
     if (isMeasurementActive) {
-        startMeasurement();
-        startStopwatch();
-    } else {
         pauseMeasurement();
         pauseStopwatch();
+        event.target.textContent = 'Start';
+    } else {
+        startMeasurement();
+        startStopwatch();
+        event.target.textContent = 'Pause';
     }
+    isMeasurementActive = !isMeasurementActive;
+    console.log(isMeasurementActive ? 'Measurement started' : 'Measurement paused');
 });
 
 document.getElementById('stop-measurement').addEventListener('click', () => {
