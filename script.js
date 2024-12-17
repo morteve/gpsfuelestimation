@@ -556,6 +556,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
     requestWakeLock();
 });
 
+// Add an interval to continuously check and update the maximum speed
+setInterval(() => {
+    if (isMeasurementActive) {
+        checkAndUpdateMaxSpeed();
+    }
+}, SIMULATION_UPDATE_INTERVAL);
+
 // Release wake lock when the page is unloaded
 window.addEventListener('unload', () => {
     releaseWakeLock();
