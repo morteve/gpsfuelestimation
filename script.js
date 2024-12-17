@@ -1,20 +1,20 @@
 // Global variables
-let speedUnit = 'knots'; // Standard
+let speedUnit = 'knots';
 let distanceTraveled = 0;
-let totalFuelConsumption = 0; // Totalt drivstofforbruk
+let totalFuelConsumption = 0;
 let lastPosition = null;
 let lastTimestamp = null;
 let isSimulationMode = false;
 let simulatedSpeed = 0;
-let simulationInterval = null; // Intervallet for simuleringsoppdatering
-const SIMULATION_UPDATE_INTERVAL = 1000; // Oppdater hver 1 sekund
-let fuelChart; // Definer globalt
+let simulationInterval = null;
+const SIMULATION_UPDATE_INTERVAL = 1000;
+let fuelChart;
 let isMeasurementActive = false;
 let fuelTankCapacity = 100;
 let remainingFuel = 100;
 let maxSpeed = 0;
 let speedBuffer = [];
-const MAX_SPEED_DISTANCE = 0.25; // 1/4 nm
+const MAX_SPEED_DISTANCE = 0.25;
 let stopwatchInterval = null;
 let stopwatchTime = 0;
 let wakeLock = null;
@@ -33,19 +33,18 @@ const measurementNoise = 1e-1;
  * @param {number} rpm - The current RPM.
  */
 function updateDashboard(speed, distance, fuel, rpm) {
-    if (!isMeasurementActive) return; // Only update if measurement is active
-    const speedKnots = speed; // Hastighet er allerede i knop
-    const distanceNm = distance; // Distanse er allerede i nautiske mil
+    if (!isMeasurementActive) return;
+    const speedKnots = speed;
+    const distanceNm = distance;
 
     document.getElementById('speed').textContent = speedKnots.toFixed(1);
     document.getElementById('distance').textContent = distanceNm.toFixed(2);
     document.getElementById('fuel-consumption').textContent = fuel.toFixed(1);
     document.getElementById('interpolated-rpm').textContent = Math.round(rpm);
     document.getElementById('fuel-per-nm').textContent = speedKnots > 0
-        ? (fuel / speedKnots).toFixed(1) // Beregn forbruk basert på hastighet
+        ? (fuel / speedKnots).toFixed(1)
         : '0';
 
-    // Oppdater grafen med markør
     if (fuelChart) {
         fuelChart.options.plugins.marker.speed = speedKnots;
         fuelChart.options.plugins.marker.fuel = fuel;
@@ -53,7 +52,6 @@ function updateDashboard(speed, distance, fuel, rpm) {
         fuelChart.update();
     }
 
-    // Oppdater max hastighet
     updateMaxSpeed(speedKnots, distance);
 }
 
@@ -66,7 +64,6 @@ function updateMaxSpeed(currentSpeed, distanceStep) {
     speedBuffer.push({ speed: currentSpeed, distance: distanceStep });
     let totalDistance = speedBuffer.reduce((acc, val) => acc + val.distance, 0);
 
-    // Remove speeds older than 0.25 nm
     while (totalDistance > MAX_SPEED_DISTANCE) {
         const removed = speedBuffer.shift();
         totalDistance -= removed.distance;
@@ -95,22 +92,19 @@ function checkAndUpdateMaxSpeed() {
  * @param {number} fuel - The current fuel consumption in liters per hour.
  */
 function updateTotalFuelConsumption(fuel) {
-    totalFuelConsumption += (fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000); // Legg til forbruk per oppdateringsintervall
+    totalFuelConsumption += (fuel / 3600) * (SIMULATION_UPDATE_INTERVAL / 1000);
     remainingFuel = fuelTankCapacity - totalFuelConsumption;
     document.getElementById('total-fuel-consumption').textContent = totalFuelConsumption.toFixed(2);
     document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
 }
 
-// Toggle simulering
+// Toggle simulation
 document.getElementById('simulation-toggle').addEventListener('change', (event) => {
     isSimulationMode = event.target.checked;
-
-    // Hent kontroll-div
     const controls = document.getElementById('simulation-controls');
 
-    // Vis eller skjul kontrollen basert på simuleringsmodus
     if (isSimulationMode) {
-        controls.style.display = 'flex'; // Bruk "flex" for bedre layout
+        controls.style.display = 'flex';
         startSimulation();
     } else {
         controls.style.display = 'none';
@@ -122,24 +116,82 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
     simulatedSpeed = parseFloat(event.target.value);
     document.getElementById('simulated-speed-value').textContent = simulatedSpeed.toFixed(1);
 
-    // Oppdater dashboard umiddelbart uten å endre distanse og drivstoff
     if (isSimulationMode && isMeasurementActive) {
         const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
         updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
     }
 });
 
+// Disable GPS data when simulation mode is active
+navigator.geolocation.watchPosition((position) => {
+    if (!isMeasurementActive || isSimulationMode) return;
+    let speed = position.coords.speed || 0;
+    if (speed === 0 && lastPosition && lastTimestamp) {
+        const distance = calculateDistance(lastPosition, {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+        });
+        const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
+        speed = (distance / timeElapsed) * 3600 / 1.852;
+    }
+
+    if (!isSimulationMode && lastPosition && lastTimestamp) {
+        const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
+        const currentSpeed = distanceTraveled / timeElapsed;
+
+        const filteredSpeed = kalmanFilter(currentSpeed);
+        const speedChange = Math.abs(speed - filteredSpeed);
+
+        const maxSpeedChange = 10;
+        if (speedChange > maxSpeedChange) {
+            console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
+            return;
+        }
+        speed = filteredSpeed;
+    }
+
+    if (lastTimestamp) {
+        const timeElapsed = (position.timestamp - lastTimestamp) / 3600000;
+        const distanceStep = speed * timeElapsed;
+        distanceTraveled += distanceStep;
+        updateMaxSpeed(speed, distanceStep);
+    }
+
+    lastPosition = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+    };
+    lastTimestamp = position.timestamp;
+
+    const interpolatedValues = calculateInterpolatedValues(speed);
+    updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
+
+    if (isMeasurementActive) {
+        updateTotalFuelConsumption(interpolatedValues.fuel);
+    }
+}, (error) => {
+    if (error.code === error.PERMISSION_DENIED) {
+        alert('Please enable location services to use this feature.');
+    } else {
+        console.error('Error occurred while retrieving location:', error);
+    }
+}, {
+    enableHighAccuracy: true,
+    maximumAge: 0,
+    timeout: Infinity
+});
+
 document.getElementById('reset-data').addEventListener('click', () => {
     distanceTraveled = 0;
-    totalFuelConsumption = 0; // Nullstill totalt drivstofforbruk
-    remainingFuel = fuelTankCapacity; // Nullstill gjenværende drivstoff
-    maxSpeed = 0; // Nullstill max hastighet
-    speedBuffer = []; // Nullstill hastighetsbuffer
+    totalFuelConsumption = 0;
+    remainingFuel = fuelTankCapacity;
+    maxSpeed = 0;
+    speedBuffer = [];
     updateDashboard(0, 0, 0, 0);
     document.getElementById('remaining-fuel').textContent = remainingFuel.toFixed(2);
     document.getElementById('max-speed').textContent = maxSpeed.toFixed(2);
     stopSimulation();
-    resetStopwatch(); // Nullstill stoppeklokke
+    resetStopwatch();
 });
 
 document.getElementById('start-pause-measurement').addEventListener('click', (event) => {
@@ -149,10 +201,10 @@ document.getElementById('start-pause-measurement').addEventListener('click', (ev
 
     if (isMeasurementActive) {
         startMeasurement();
-        startStopwatch(); // Start stoppeklokke
+        startStopwatch();
     } else {
         pauseMeasurement();
-        pauseStopwatch(); // Pause stoppeklokke
+        pauseStopwatch();
     }
 });
 
@@ -179,7 +231,6 @@ function startMeasurement() {
     if (isSimulationMode) {
         startSimulation();
     }
-    // GPS measurement continues to run, no need to start it again
 }
 
 function pauseMeasurement() {
@@ -187,7 +238,6 @@ function pauseMeasurement() {
     if (isSimulationMode) {
         stopSimulation();
     }
-    // Do not stop GPS measurement to keep getting speed updates
 }
 
 /**
@@ -200,7 +250,7 @@ function startGPSMeasurement() {
     }
 
     navigator.geolocation.watchPosition((position) => {
-        if (!isMeasurementActive || isSimulationMode) return; // Ignore GPS data if measurement is inactive or simulation mode is on
+        if (!isMeasurementActive || isSimulationMode) return;
 
         let speed = position.coords.speed || 0;
         if (speed === 0 && lastPosition && lastTimestamp) {
@@ -208,31 +258,30 @@ function startGPSMeasurement() {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
             });
-            const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
-            speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
+            const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
+            speed = (distance / timeElapsed) * 3600 / 1.852;
         }
 
-        // Filter out unrealistic speed changes using Kalman filter
         if (!isSimulationMode && lastPosition && lastTimestamp) {
-            const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
+            const timeElapsed = (position.timestamp - lastTimestamp) / 1000;
             const currentSpeed = distanceTraveled / timeElapsed;
 
             const filteredSpeed = kalmanFilter(currentSpeed);
             const speedChange = Math.abs(speed - filteredSpeed);
 
-            const maxSpeedChange = 10; // Max change in knots per second
+            const maxSpeedChange = 10;
             if (speedChange > maxSpeedChange) {
-            console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
-            return;
+                console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
+                return;
             }
-            speed = filteredSpeed; // Use the filtered speed
+            speed = filteredSpeed;
         }
 
         if (lastTimestamp) {
-            const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
-            const distanceStep = speed * timeElapsed; // nm
-            distanceTraveled += distanceStep; // nm
-            updateMaxSpeed(speed, distanceStep); // Oppdater max hastighet kontinuerlig
+            const timeElapsed = (position.timestamp - lastTimestamp) / 3600000;
+            const distanceStep = speed * timeElapsed;
+            distanceTraveled += distanceStep;
+            updateMaxSpeed(speed, distanceStep);
         }
 
         lastPosition = {
@@ -261,22 +310,16 @@ function stopGPSMeasurement() {
     // Logic to stop GPS measurement if needed
 }
 
-// Simuleringsfunksjon
+// Simulation function
 function startSimulation() {
-    stopSimulation(); // Stopp eventuell eksisterende simulering
+    stopSimulation();
     simulationInterval = setInterval(() => {
         if (isSimulationMode && isMeasurementActive) {
-            // Beregn distanse basert på simulert hastighet
-            const distanceStep = simulatedSpeed * (SIMULATION_UPDATE_INTERVAL / 3600000); // nm per oppdateringsintervall
+            const distanceStep = simulatedSpeed * (SIMULATION_UPDATE_INTERVAL / 3600000);
             distanceTraveled += distanceStep;
 
-            // Beregn interpolerte verdier
             const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
-
-            // Oppdater totalt drivstofforbruk
             updateTotalFuelConsumption(interpolatedValues.fuel);
-
-            // Oppdater dashboard med de nye verdiene
             updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
         }
     }, SIMULATION_UPDATE_INTERVAL);
@@ -287,8 +330,8 @@ function stopSimulation() {
         clearInterval(simulationInterval);
         simulationInterval = null;
     }
-    simulatedSpeed = 0; // Nullstill simulert hastighet
-    updateDashboard(0, distanceTraveled, 0, 0); // Oppdater dashbordet til 0 for hastighet og forbruk
+    simulatedSpeed = 0;
+    updateDashboard(0, distanceTraveled, 0, 0);
 }
 
 /**
@@ -297,26 +340,26 @@ function stopSimulation() {
  */
 function getCalibrationData() {
     return {
-      idle: {
-        rpm: parseFloat(document.getElementById('idle-rpm').value),
-        speed: parseFloat(document.getElementById('idle-speed').value), // Hastighet i knop
-        fuel: parseFloat(document.getElementById('idle-fuel').value),
-      },
-      lowCruise: {
-        rpm: parseFloat(document.getElementById('low-rpm').value),
-        speed: parseFloat(document.getElementById('low-speed').value), // Hastighet i knop
-        fuel: parseFloat(document.getElementById('low-fuel').value),
-      },
-      highCruise: {
-        rpm: parseFloat(document.getElementById('high-rpm').value),
-        speed: parseFloat(document.getElementById('high-speed').value), // Hastighet i knop
-        fuel: parseFloat(document.getElementById('high-fuel').value),
-      },
-      wot: {
-        rpm: parseFloat(document.getElementById('wot-rpm').value),
-        speed: parseFloat(document.getElementById('wot-speed').value), // Hastighet i knop
-        fuel: parseFloat(document.getElementById('wot-fuel').value),
-      },
+        idle: {
+            rpm: parseFloat(document.getElementById('idle-rpm').value),
+            speed: parseFloat(document.getElementById('idle-speed').value),
+            fuel: parseFloat(document.getElementById('idle-fuel').value),
+        },
+        lowCruise: {
+            rpm: parseFloat(document.getElementById('low-rpm').value),
+            speed: parseFloat(document.getElementById('low-speed').value),
+            fuel: parseFloat(document.getElementById('low-fuel').value),
+        },
+        highCruise: {
+            rpm: parseFloat(document.getElementById('high-rpm').value),
+            speed: parseFloat(document.getElementById('high-speed').value),
+            fuel: parseFloat(document.getElementById('high-fuel').value),
+        },
+        wot: {
+            rpm: parseFloat(document.getElementById('wot-rpm').value),
+            speed: parseFloat(document.getElementById('wot-speed').value),
+            fuel: parseFloat(document.getElementById('wot-fuel').value),
+        },
     };
 }
 
@@ -327,35 +370,33 @@ function getCalibrationData() {
  */
 function calculateInterpolatedValues(speed) {
     if (speed < 0) {
-        speed = 0; // Handle negative speed by setting it to 0
+        speed = 0;
     }
     const data = getCalibrationData();
-  
-    // Enkel interpolering mellom punktene
+
     let rpm, fuel;
-  
+
     if (speed <= data.idle.speed) {
-      rpm = data.idle.rpm;
-      fuel = data.idle.fuel;
+        rpm = data.idle.rpm;
+        fuel = data.idle.fuel;
     } else if (speed <= data.lowCruise.speed) {
-      rpm = interpolate(data.idle.speed, data.lowCruise.speed, data.idle.rpm, data.lowCruise.rpm, speed);
-      fuel = interpolate(data.idle.speed, data.lowCruise.speed, data.idle.fuel, data.lowCruise.fuel, speed);
+        rpm = interpolate(data.idle.speed, data.lowCruise.speed, data.idle.rpm, data.lowCruise.rpm, speed);
+        fuel = interpolate(data.idle.speed, data.lowCruise.speed, data.idle.fuel, data.lowCruise.fuel, speed);
     } else if (speed <= data.highCruise.speed) {
-      rpm = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.rpm, data.highCruise.rpm, speed);
-      fuel = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.fuel, data.highCruise.fuel, speed);
+        rpm = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.rpm, data.highCruise.rpm, speed);
+        fuel = interpolate(data.lowCruise.speed, data.highCruise.speed, data.lowCruise.fuel, data.highCruise.fuel, speed);
     } else if (speed <= data.wot.speed) {
-      rpm = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.rpm, data.wot.rpm, speed);
-      fuel = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.fuel, data.wot.fuel, speed);
+        rpm = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.rpm, data.wot.rpm, speed);
+        fuel = interpolate(data.highCruise.speed, data.wot.speed, data.highCruise.fuel, data.wot.fuel, speed);
     } else {
-      // Fortsett interpolering forbi høyeste verdi
-      const extraSpeed = speed - data.wot.speed;
-      rpm = data.wot.rpm + (extraSpeed * (data.wot.rpm - data.highCruise.rpm) / (data.wot.speed - data.highCruise.speed));
-      fuel = data.wot.fuel + (extraSpeed * (data.wot.fuel - data.highCruise.fuel) / (data.wot.speed - data.highCruise.speed));
+        const extraSpeed = speed - data.wot.speed;
+        rpm = data.wot.rpm + (extraSpeed * (data.wot.rpm - data.highCruise.rpm) / (data.wot.speed - data.highCruise.speed));
+        fuel = data.wot.fuel + (extraSpeed * (data.wot.fuel - data.highCruise.fuel) / (data.wot.speed - data.highCruise.speed));
     }
-  
+
     return { rpm, fuel };
 }
-  
+
 /**
  * Performs linear interpolation between two points.
  * @param {number} x1 - The x-coordinate of the first point.
@@ -369,65 +410,6 @@ function interpolate(x1, x2, y1, y2, x) {
     return y1 + ((y2 - y1) * (x - x1)) / (x2 - x1);
 }
 
-navigator.geolocation.watchPosition((position) => {
-    if (!isMeasurementActive) return; // Only update if measurement is active
-    let speed = position.coords.speed || 0;
-    if (speed === 0 && lastPosition && lastTimestamp) {
-        const distance = calculateDistance(lastPosition, {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-        });
-        const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
-        speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
-    }
-
-    // Filter out unrealistic speed changes using Kalman filter
-    if (!isSimulationMode && lastPosition && lastTimestamp) {
-        const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
-        const currentSpeed = distanceTraveled / timeElapsed;
-
-        const filteredSpeed = kalmanFilter(currentSpeed);
-        const speedChange = Math.abs(speed - filteredSpeed);
-
-        const maxSpeedChange = 10; // Max change in knots per second
-        if (speedChange > maxSpeedChange) {
-            console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
-            return;
-        }
-        speed = filteredSpeed; // Use the filtered speed
-    }
-
-    if (lastTimestamp) {
-        const timeElapsed = (position.timestamp - lastTimestamp) / 3600000; // timer
-        const distanceStep = speed * timeElapsed; // nm
-        distanceTraveled += distanceStep; // nm
-        updateMaxSpeed(speed, distanceStep); // Oppdater max hastighet kontinuerlig
-    }
-
-    lastPosition = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-    };
-    lastTimestamp = position.timestamp;
-
-    const interpolatedValues = calculateInterpolatedValues(speed);
-    updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
-
-    if (isMeasurementActive) {
-        updateTotalFuelConsumption(interpolatedValues.fuel);
-    }
-}, (error) => {
-    if (error.code === error.PERMISSION_DENIED) {
-        alert('Please enable location services to use this feature.');
-    } else {
-        console.error('Error occurred while retrieving location:', error);
-    }
-}, {
-    enableHighAccuracy: true,
-    maximumAge: 0,
-    timeout: Infinity
-});
-
 /**
  * Calculates the distance between two geographical points.
  * @param {Object} pos1 - The first geographical point.
@@ -435,17 +417,24 @@ navigator.geolocation.watchPosition((position) => {
  * @returns {number} The distance between the two points in nautical miles.
  */
 function calculateDistance(pos1, pos2) {
-  const R = 6371; // Radius of Earth in km
-  const dLat = ((pos2.latitude - pos1.latitude) * Math.PI) / 180;
-  const dLon = ((pos2.longitude - pos1.longitude) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((pos1.latitude * Math.PI) / 180) *
-      Math.cos((pos2.latitude * (Math.PI) / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c / 1.852; // Konverter km til nautiske mil
+    const EARTH_RADIUS_KM = 6371;
+    const KM_TO_NM = 1.852;
+
+    const dLat = ((pos2.latitude - pos1.latitude) * Math.PI) / 180;
+    const dLon = ((pos2.longitude - pos1.longitude) * Math.PI) / 180;
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((pos1.latitude * Math.PI) / 180) *
+        Math.cos((pos2.latitude * Math.PI) / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    const distanceKm = EARTH_RADIUS_KM * c;
+    const distanceNm = distanceKm / KM_TO_NM;
+
+    return distanceNm;
 }
 
 /**
@@ -458,7 +447,7 @@ function generateFuelConsumptionData() {
     const fuelConsumption = [];
     const rpmValues = [];
 
-    for (let speed = 0; speed <= data.wot.speed + 10; speed += 1) { // Extend range beyond wot.speed
+    for (let speed = 0; speed <= data.wot.speed + 10; speed += 1) {
         const interpolatedValues = calculateInterpolatedValues(speed);
         speedRange.push(speed);
         fuelConsumption.push(interpolatedValues.fuel);
@@ -489,19 +478,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 ctx.strokeStyle = 'red';
                 ctx.lineWidth = 1;
 
-                // Draw vertical line at speed
                 ctx.beginPath();
                 ctx.moveTo(xPos, top);
                 ctx.lineTo(xPos, bottom);
                 ctx.stroke();
 
-                // Draw horizontal line for fuel
                 ctx.beginPath();
                 ctx.moveTo(left, yPosFuel);
                 ctx.lineTo(xPos, yPosFuel);
                 ctx.stroke();
 
-                // Draw horizontal line for rpm
                 ctx.beginPath();
                 ctx.moveTo(left, yPosRpm);
                 ctx.lineTo(xPos, yPosRpm);
@@ -566,7 +552,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                         text: 'RPM'
                     },
                     grid: {
-                        drawOnChartArea: false // only want the grid lines for one axis to show up
+                        drawOnChartArea: false
                     }
                 }
             }
@@ -574,10 +560,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
         plugins: [markerPlugin]
     });
 
-    // Update chart when calibration data changes
     document.querySelectorAll('.calibration-block input').forEach(input => {
         input.addEventListener('input', () => {
-            if (!isMeasurementActive) return; // Only update if measurement is active
+            if (!isMeasurementActive) return;
             const { speedRange, fuelConsumption, rpmValues } = generateFuelConsumptionData();
             fuelChart.data.labels = speedRange;
             fuelChart.data.datasets[0].data = fuelConsumption;
@@ -589,14 +574,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
     requestWakeLock();
 });
 
-// Add an interval to continuously check and update the maximum speed
 setInterval(() => {
     if (isMeasurementActive) {
         checkAndUpdateMaxSpeed();
     }
 }, SIMULATION_UPDATE_INTERVAL);
 
-// Release wake lock when the page is unloaded
 window.addEventListener('unload', () => {
     releaseWakeLock();
 });
@@ -609,7 +592,7 @@ async function requestWakeLock() {
         wakeLock = await navigator.wakeLock.request('screen');
         wakeLock.addEventListener('release', () => {
             console.log('Wake lock released, requesting again...');
-            requestWakeLock(); // Request wake lock again
+            requestWakeLock();
         });
         console.log('Wake lock acquired');
     } catch (err) {
@@ -630,7 +613,6 @@ function releaseWakeLock() {
     }
 }
 
-// Request wake lock initially
 requestWakeLock();
 
 /**
@@ -649,7 +631,7 @@ function updateStopwatch() {
  * Starts the stopwatch.
  */
 function startStopwatch() {
-    if (stopwatchInterval) return; // Prevent multiple intervals
+    if (stopwatchInterval) return;
     stopwatchInterval = setInterval(() => {
         stopwatchTime++;
         updateStopwatch();
@@ -679,10 +661,8 @@ function resetStopwatch() {
  * @returns {number} The filtered speed.
  */
 function kalmanFilter(measuredSpeed) {
-    // Prediction update
     kalmanError += processNoise;
 
-    // Measurement update
     const kalmanGain = kalmanError / (kalmanError + measurementNoise);
     kalmanSpeed += kalmanGain * (measuredSpeed - kalmanSpeed);
     kalmanError *= (1 - kalmanGain);
