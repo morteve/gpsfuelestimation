@@ -210,6 +210,7 @@ document.getElementById('start-pause-measurement').addEventListener('click', (ev
     if (isMeasurementActive) {
         startMeasurement();
         startStopwatch();
+        startGPSMeasurement(); // Ensure GPS measurement starts
     } else {
         pauseMeasurement();
         pauseStopwatch();
