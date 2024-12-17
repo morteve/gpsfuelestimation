@@ -19,6 +19,12 @@ let stopwatchInterval = null;
 let stopwatchTime = 0;
 let wakeLock = null;
 
+// Kalman filter variables
+let kalmanSpeed = 0;
+let kalmanError = 1;
+const processNoise = 1e-3;
+const measurementNoise = 1e-1;
+
 /**
  * Updates the dashboard with the current speed, distance, fuel consumption, and RPM.
  * @param {number} speed - The current speed in knots.
@@ -206,11 +212,15 @@ function startGPSMeasurement() {
             speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
         }
 
-        // Filter out unrealistic speed changes
+        // Filter out unrealistic speed changes using Kalman filter
         if (lastPosition && lastTimestamp) {
-            const maxSpeedChange = 10; // Max change in knots per second
             const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
-            const speedChange = Math.abs(speed - (distanceTraveled / timeElapsed));
+            const currentSpeed = distanceTraveled / timeElapsed;
+
+            const filteredSpeed = kalmanFilter(currentSpeed);
+            const speedChange = Math.abs(speed - filteredSpeed);
+
+            const maxSpeedChange = 10; // Max change in knots per second
             if (speedChange > maxSpeedChange) {
                 console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
                 return;
@@ -370,11 +380,15 @@ navigator.geolocation.watchPosition((position) => {
         speed = (distance / timeElapsed) * 3600 / 1.852; // konverter til knop
     }
 
-    // Filter out unrealistic speed changes
+    // Filter out unrealistic speed changes using Kalman filter
     if (lastPosition && lastTimestamp) {
-        const maxSpeedChange = 10; // Max change in knots per second
         const timeElapsed = (position.timestamp - lastTimestamp) / 1000; // sekunder
-        const speedChange = Math.abs(speed - (distanceTraveled / timeElapsed));
+        const currentSpeed = distanceTraveled / timeElapsed;
+
+        const filteredSpeed = kalmanFilter(currentSpeed);
+        const speedChange = Math.abs(speed - filteredSpeed);
+
+        const maxSpeedChange = 10; // Max change in knots per second
         if (speedChange > maxSpeedChange) {
             console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
             return;
@@ -641,4 +655,21 @@ function resetStopwatch() {
     pauseStopwatch();
     stopwatchTime = 0;
     updateStopwatch();
+}
+
+/**
+ * Kalman filter for smoothing speed measurements.
+ * @param {number} measuredSpeed - The measured speed.
+ * @returns {number} The filtered speed.
+ */
+function kalmanFilter(measuredSpeed) {
+    // Prediction update
+    kalmanError += processNoise;
+
+    // Measurement update
+    const kalmanGain = kalmanError / (kalmanError + measurementNoise);
+    kalmanSpeed += kalmanGain * (measuredSpeed - kalmanSpeed);
+    kalmanError *= (1 - kalmanGain);
+
+    return kalmanSpeed;
 }
