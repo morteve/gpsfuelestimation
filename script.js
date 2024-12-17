@@ -177,6 +177,11 @@ function pauseMeasurement() {
  * Starts GPS measurement and updates the dashboard with the current data.
  */
 function startGPSMeasurement() {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser');
+        return;
+    }
+
     navigator.geolocation.watchPosition((position) => {
         if (!isMeasurementActive || isSimulationMode) return; // Ignore GPS data if measurement is inactive or simulation mode is on
 
@@ -217,6 +222,12 @@ function startGPSMeasurement() {
         const interpolatedValues = calculateInterpolatedValues(speed);
         updateDashboard(speed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
         updateTotalFuelConsumption(interpolatedValues.fuel);
+    }, (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+            alert('Please enable location services to use this feature.');
+        } else {
+            console.error('Error occurred while retrieving location:', error);
+        }
     });
 }
 
