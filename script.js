@@ -26,6 +26,7 @@ let stopwatchTime = 0;
  * @param {number} rpm - The current RPM.
  */
 function updateDashboard(speed, distance, fuel, rpm) {
+    if (!isMeasurementActive) return; // Only update if measurement is active
     const speedKnots = speed; // Hastighet er allerede i knop
     const distanceNm = distance; // Distanse er allerede i nautiske mil
 
@@ -331,6 +332,7 @@ function interpolate(x1, x2, y1, y2, x) {
 }
 
 navigator.geolocation.watchPosition((position) => {
+    if (!isMeasurementActive) return; // Only update if measurement is active
     let speed = position.coords.speed || 0;
     if (speed === 0 && lastPosition && lastTimestamp) {
         const distance = calculateDistance(lastPosition, {
@@ -522,6 +524,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // Update chart when calibration data changes
     document.querySelectorAll('.calibration-block input').forEach(input => {
         input.addEventListener('input', () => {
+            if (!isMeasurementActive) return; // Only update if measurement is active
             const { speedRange, fuelConsumption, rpmValues } = generateFuelConsumptionData();
             fuelChart.data.labels = speedRange;
             fuelChart.data.datasets[0].data = fuelConsumption;
