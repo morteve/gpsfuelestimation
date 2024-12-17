@@ -17,6 +17,7 @@ let speedBuffer = [];
 const MAX_SPEED_DISTANCE = 0.25; // 1/4 nm
 let stopwatchInterval = null;
 let stopwatchTime = 0;
+let wakeLock = null;
 
 /**
  * Updates the dashboard with the current speed, distance, fuel consumption, and RPM.
@@ -541,7 +542,42 @@ document.addEventListener('DOMContentLoaded', (event) => {
             fuelChart.update();
         });
     });
+
+    requestWakeLock();
 });
+
+// Release wake lock when the page is unloaded
+window.addEventListener('unload', () => {
+    releaseWakeLock();
+});
+
+/**
+ * Request a wake lock to keep the screen on.
+ */
+async function requestWakeLock() {
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => {
+            console.log('Wake lock released');
+        });
+        console.log('Wake lock acquired');
+    } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+    }
+}
+
+/**
+ * Release the wake lock.
+ */
+function releaseWakeLock() {
+    if (wakeLock !== null) {
+        wakeLock.release()
+            .then(() => {
+                wakeLock = null;
+                console.log('Wake lock released');
+            });
+    }
+}
 
 /**
  * Updates the stopwatch display.
