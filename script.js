@@ -59,7 +59,7 @@ function updateMaxSpeed(currentSpeed, distanceStep) {
     speedBuffer.push({ speed: currentSpeed, distance: distanceStep });
     let totalDistance = speedBuffer.reduce((acc, val) => acc + val.distance, 0);
 
-    // Fjern hastigheter som er eldre enn 1/4 nm
+    // Remove speeds older than 0.25 nm
     while (totalDistance > MAX_SPEED_DISTANCE) {
         const removed = speedBuffer.shift();
         totalDistance -= removed.distance;
