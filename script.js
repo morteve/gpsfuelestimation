@@ -581,6 +581,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 
     requestWakeLock();
+    startGPSMeasurement(); // Ensure GPS measurement starts when the document is loaded
 });
 
 setInterval(() => {
