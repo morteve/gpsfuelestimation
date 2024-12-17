@@ -106,7 +106,7 @@ document.getElementById('simulated-speed').addEventListener('input', (event) => 
     document.getElementById('simulated-speed-value').textContent = simulatedSpeed.toFixed(1);
 
     // Oppdater dashboard umiddelbart uten å endre distanse og drivstoff
-    if (isSimulationMode) {
+    if (isSimulationMode && isMeasurementActive) {
         const interpolatedValues = calculateInterpolatedValues(simulatedSpeed);
         updateDashboard(simulatedSpeed, distanceTraveled, interpolatedValues.fuel, interpolatedValues.rpm);
     }
