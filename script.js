@@ -180,7 +180,7 @@ function pauseMeasurement() {
  */
 function startGPSMeasurement() {
     navigator.geolocation.watchPosition((position) => {
-        if (!isMeasurementActive) return; // Ignorer GPS-data hvis måling er inaktiv
+        if (!isMeasurementActive || isSimulationMode) return; // Ignore GPS data if measurement is inactive or simulation mode is on
 
         let speed = position.coords.speed || 0;
         if (speed === 0 && lastPosition && lastTimestamp) {
