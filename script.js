@@ -161,18 +161,16 @@ function startMeasurement() {
     console.log('Measurement started');
     if (isSimulationMode) {
         startSimulation();
-    } else {
-        startGPSMeasurement();
     }
+    // GPS measurement continues to run, no need to start it again
 }
 
 function pauseMeasurement() {
     console.log('Measurement paused');
     if (isSimulationMode) {
         stopSimulation();
-    } else {
-        stopGPSMeasurement();
     }
+    // Do not stop GPS measurement to keep getting speed updates
 }
 
 /**
