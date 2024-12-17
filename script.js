@@ -32,10 +32,10 @@ function updateDashboard(speed, distance, fuel, rpm) {
 
     document.getElementById('speed').textContent = speedKnots.toFixed(1);
     document.getElementById('distance').textContent = distanceNm.toFixed(2);
-    document.getElementById('fuel-consumption').textContent = fuel.toFixed(2);
-    document.getElementById('interpolated-rpm').textContent = rpm.toFixed(2);
+    document.getElementById('fuel-consumption').textContent = fuel.toFixed(1);
+    document.getElementById('interpolated-rpm').textContent = Math.round(rpm);
     document.getElementById('fuel-per-nm').textContent = speedKnots > 0
-        ? (fuel / speedKnots).toFixed(2) // Beregn forbruk basert på hastighet
+        ? (fuel / speedKnots).toFixed(1) // Beregn forbruk basert på hastighet
         : '0';
 
     // Oppdater grafen med markør
@@ -68,8 +68,8 @@ function updateMaxSpeed(currentSpeed, distanceStep) {
     const totalSpeed = speedBuffer.reduce((acc, val) => acc + val.speed * val.distance, 0);
     const averageSpeed = totalSpeed / totalDistance;
     if (averageSpeed > maxSpeed) {
-        maxSpeed = averageSpeed;
-        document.getElementById('max-speed').textContent = maxSpeed.toFixed(2);
+        maxSpeed = Math.floor(averageSpeed);
+        document.getElementById('max-speed').textContent = maxSpeed;
     }
 }
 
