@@ -22,7 +22,7 @@ let wakeLock = null;
 // Kalman filter variables
 let kalmanSpeed = 0;
 let kalmanError = 1;
-const processNoise = 1e-2;
+const processNoise = 1e-3;
 const measurementNoise = 1e-1;
 
 /**
@@ -69,15 +69,7 @@ function updateMaxSpeed(currentSpeed, distanceStep) {
         totalDistance -= removed.distance;
     }
 
-    // Ensure the latest distance is used for max speed calculation
-    if (totalDistance > 0) {
-        const totalSpeed = speedBuffer.reduce((acc, val) => acc + val.speed * val.distance, 0);
-        const averageSpeed = totalSpeed / totalDistance;
-        if (averageSpeed > maxSpeed) {
-            maxSpeed = Math.floor(averageSpeed);
-            document.getElementById('max-speed').textContent = maxSpeed;
-        }
-    }
+    checkAndUpdateMaxSpeed();
 }
 
 /**
@@ -210,7 +202,6 @@ document.getElementById('start-pause-measurement').addEventListener('click', (ev
     if (isMeasurementActive) {
         startMeasurement();
         startStopwatch();
-        startGPSMeasurement(); // Ensure GPS measurement starts
     } else {
         pauseMeasurement();
         pauseStopwatch();
@@ -583,7 +574,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 
     requestWakeLock();
-    startGPSMeasurement(); // Ensure GPS measurement starts when the document is loaded
 });
 
 setInterval(() => {
