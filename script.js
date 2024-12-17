@@ -225,6 +225,7 @@ function startGPSMeasurement() {
             console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
             return;
             }
+            speed = filteredSpeed; // Use the filtered speed
         }
 
         if (lastTimestamp) {
@@ -393,6 +394,7 @@ navigator.geolocation.watchPosition((position) => {
             console.warn(`Unrealistic GPS speed change: ${speedChange} knots`);
             return;
         }
+        speed = filteredSpeed; // Use the filtered speed
     }
 
     if (lastTimestamp) {
@@ -606,7 +608,8 @@ async function requestWakeLock() {
     try {
         wakeLock = await navigator.wakeLock.request('screen');
         wakeLock.addEventListener('release', () => {
-            console.log('Wake lock released');
+            console.log('Wake lock released, requesting again...');
+            requestWakeLock(); // Request wake lock again
         });
         console.log('Wake lock acquired');
     } catch (err) {
@@ -626,6 +629,9 @@ function releaseWakeLock() {
             });
     }
 }
+
+// Request wake lock initially
+requestWakeLock();
 
 /**
  * Updates the stopwatch display.
