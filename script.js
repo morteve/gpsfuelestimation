@@ -66,11 +66,21 @@ function updateMaxSpeed(currentSpeed, distanceStep) {
         totalDistance -= removed.distance;
     }
 
-    const totalSpeed = speedBuffer.reduce((acc, val) => acc + val.speed * val.distance, 0);
-    const averageSpeed = totalSpeed / totalDistance;
-    if (averageSpeed > maxSpeed) {
-        maxSpeed = Math.floor(averageSpeed);
-        document.getElementById('max-speed').textContent = maxSpeed;
+    checkAndUpdateMaxSpeed();
+}
+
+/**
+ * Continuously checks if the average speed over the last 0.25 nm is higher than the maximum speed.
+ */
+function checkAndUpdateMaxSpeed() {
+    const totalDistance = speedBuffer.reduce((acc, val) => acc + val.distance, 0);
+    if (totalDistance >= MAX_SPEED_DISTANCE) {
+        const totalSpeed = speedBuffer.reduce((acc, val) => acc + val.speed * val.distance, 0);
+        const averageSpeed = totalSpeed / totalDistance;
+        if (averageSpeed > maxSpeed) {
+            maxSpeed = Math.floor(averageSpeed);
+            document.getElementById('max-speed').textContent = maxSpeed;
+        }
     }
 }
 
